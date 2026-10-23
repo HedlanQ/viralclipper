@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: viralclipper
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

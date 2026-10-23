@@ -1,0 +1,221 @@
+/* ViralClipper Custom Styles */
+
+/* Background pattern */
+body {
+    background-image: radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.03) 1px, transparent 0);
+    background-size: 32px 32px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #16161d;
+}
+::-webkit-scrollbar-thumb {
+    background: #2a2a36;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #3a3a48;
+}
+
+/* Drop zone animations */
+.drop-zone {
+    animation: breathe 3s ease-in-out infinite;
+}
+
+.drop-zone:hover {
+    animation: none;
+}
+
+.drop-zone.drag-over {
+    border-color: #8B5CF6 !important;
+    background: rgba(139, 92, 246, 0.08) !important;
+    animation: none;
+    transform: scale(1.02);
+}
+
+@keyframes breathe {
+    0%, 100% { border-color: rgba(58, 58, 72, 0.5); }
+    50% { border-color: rgba(139, 92, 246, 0.3); }
+}
+
+/* Shimmer effect for progress bars */
+.shimmer {
+    background: linear-gradient(
+        90deg,
+        #8B5CF6 0%,
+        #A78BFA 50%,
+        #8B5CF6 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Fade in animation */
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Clip card styles */
+.clip-card {
+    background: #16161d;
+    border: 1px solid #2a2a36;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.clip-card:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(139, 92, 246, 0.1);
+}
+
+/* Rank badge */
+.rank-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; }
+.rank-2 { background: linear-gradient(135deg, #C0C0C0, #A8A8A8); color: #000; }
+.rank-3 { background: linear-gradient(135deg, #CD7F32, #A0522D); color: #fff; }
+.rank-default { background: #2a2a36; color: #8B5CF6; }
+
+/* Virality score bar */
+.virality-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: #1e1e28;
+    overflow: hidden;
+}
+
+.virality-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease-out;
+}
+
+.virality-high { background: linear-gradient(90deg, #10B981, #34D399); }
+.virality-mid { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+.virality-low { background: linear-gradient(90deg, #EF4444, #F87171); }
+
+/* Video player in cards */
+.clip-card video {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    object-fit: contain;
+}
+
+/* Pulse animation for processing */
+.pulse-dot {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Active step indicator */
+.step-active {
+    color: #A78BFA !important;
+}
+
+.step-active .w-2 {
+    background: #8B5CF6 !important;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.step-done {
+    color: #10B981 !important;
+}
+
+.step-done .w-2 {
+    background: #10B981 !important;
+}
+
+/* Toast notification */
+.toast {
+    background: #16161d;
+    border: 1px solid #2a2a36;
+    border-left: 4px solid #EF4444;
+    border-radius: 8px;
+    padding: 12px 16px;
+    min-width: 280px;
+    max-width: 400px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    animation: slideIn 0.3s ease-out;
+}
+
+.toast-success {
+    border-left-color: #10B981;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(100%); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(100%); }
+}
+
+/* Description toggle */
+.description-toggle {
+    cursor: pointer;
+    color: #6B7280;
+    font-size: 12px;
+    transition: color 0.2s;
+}
+
+.description-toggle:hover {
+    color: #A78BFA;
+}
+
+/* Download button */
+.btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: #8B5CF6;
+    color: white;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.btn-download:hover {
+    background: #7C3AED;
+    transform: translateY(-1px);
+}
