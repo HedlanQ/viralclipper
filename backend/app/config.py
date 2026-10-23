@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     TEMP_DIR: str = os.path.join(BACKEND_DIR, "temp")
 
     # File limits
-    MAX_FILE_SIZE: int = 500 * 1024 * 1024  # 500MB
+    MAX_FILE_SIZE: int = 2048 * 1024 * 1024  # 2GB (2048MB)
 
     # AI Configuration
     GEMINI_API_KEY: str = ""

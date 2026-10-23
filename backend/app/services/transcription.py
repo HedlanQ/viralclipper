@@ -73,7 +73,7 @@ def _extract_audio_for_transcription(video_path: str, for_cloud: bool = False) -
             "-ar", "16000",
             "-ac", "1",
             "-c:a", "aac",
-            "-b:a", "48k",
+            "-b:a", "24k",
             temp_audio,
         ]
     else:

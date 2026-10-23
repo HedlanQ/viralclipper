@@ -219,17 +219,23 @@ async def upload_video(file: UploadFile = File(...)):
     save_path = os.path.join(settings.UPLOAD_DIR, save_filename)
 
     try:
-        content = await file.read()
-        file_size = len(content)
-
-        if file_size > settings.MAX_FILE_SIZE:
-            raise HTTPException(
-                status_code=400,
-                detail=f"File too large. Maximum size is {format_file_size(settings.MAX_FILE_SIZE)}.",
-            )
-
+        file_size = 0
+        chunk_size = 1024 * 1024  # 1MB streaming chunks (prevents RAM crash on large 1GB-2GB uploads)
         with open(save_path, "wb") as f:
-            f.write(content)
+            while True:
+                chunk = await file.read(chunk_size)
+                if not chunk:
+                    break
+                file_size += len(chunk)
+                if file_size > settings.MAX_FILE_SIZE:
+                    f.close()
+                    if os.path.exists(save_path):
+                        os.remove(save_path)
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"File too large. Maximum size is {format_file_size(settings.MAX_FILE_SIZE)}.",
+                    )
+                f.write(chunk)
 
     except HTTPException:
         raise

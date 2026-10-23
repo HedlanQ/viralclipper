@@ -314,8 +314,8 @@ function setSelectedFile(file) {
         return;
     }
 
-    if (file.size > 500 * 1024 * 1024) {
-        showToast('File too large. Maximum supported size is 500MB.', 'error');
+    if (file.size > 2048 * 1024 * 1024) {
+        showToast('File too large. Maximum supported size is 2GB.', 'error');
         return;
     }
 
@@ -399,7 +399,7 @@ function uploadFile(file) {
 
         xhr.addEventListener('error', () => reject(new Error('Network error. Make sure the backend server is running.')));
         xhr.addEventListener('timeout', () => reject(new Error('Upload timed out')));
-        xhr.timeout = 300000;
+        xhr.timeout = 900000; // 15 minutes for large up to 2GB uploads
 
         xhr.send(formData);
     });
