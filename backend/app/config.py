@@ -47,6 +47,19 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
+def get_groq_api_key() -> str:
+    """Reload .env dynamically if GROQ_API_KEY was added after startup."""
+    if settings.GROQ_API_KEY:
+        return settings.GROQ_API_KEY
+    for env_path in [os.path.join(BACKEND_DIR, ".env"), os.path.join(PROJECT_ROOT, ".env")]:
+        if os.path.exists(env_path):
+            load_dotenv(env_path, override=True)
+    val = os.environ.get("GROQ_API_KEY", "")
+    if val:
+        settings.GROQ_API_KEY = val
+    return settings.GROQ_API_KEY
+
+
 def ensure_directories():
     """Create required directories if they don't exist."""
     for dir_path in [settings.UPLOAD_DIR, settings.OUTPUT_DIR, settings.TEMP_DIR]:
