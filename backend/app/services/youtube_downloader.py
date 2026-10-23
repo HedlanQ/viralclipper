@@ -218,16 +218,20 @@ def download_youtube_video(url: str, job_id: str) -> dict:
     output_path = os.path.join(settings.UPLOAD_DIR, output_filename)
     output_template = os.path.join(settings.UPLOAD_DIR, f"{job_id}.%(ext)s")
 
+    engine_errors = []
+
     # 1. Primary Cloud Proxy Resolver (Clipto Residential Proxy Pool)
     try:
         return _download_via_clipto_cloud_resolver(clean_url, settings.UPLOAD_DIR, output_filename)
     except Exception as e:
+        engine_errors.append(f"[1/3 clipto] {str(e)[:200]}")
         logger.warning(f"Clipto Cloud Resolver failed ({e}), trying pytubefix...")
 
     # 2. Secondary Engine: pytubefix with built-in Node.js Proof-of-Origin (PoToken)
     try:
         return _download_via_pytubefix(clean_url, settings.UPLOAD_DIR, output_filename)
     except Exception as e:
+        engine_errors.append(f"[2/3 pytubefix] {str(e)[:200]}")
         logger.warning(f"pytubefix download failed ({e}), trying yt-dlp fallback...")
 
     # 3. Tertiary Engine: yt-dlp with mobile/VR player clients
@@ -273,4 +277,5 @@ def download_youtube_video(url: str, job_id: str) -> dict:
             last_error = e
             logger.warning(f"yt-dlp profile {clients} failed: {e}")
 
-    raise RuntimeError(f"Failed to download YouTube video: {last_error}")
+    engine_errors.append(f"[3/3 yt-dlp] {str(last_error)[:200]}")
+    raise RuntimeError(" | ".join(engine_errors))

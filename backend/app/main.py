@@ -200,6 +200,7 @@ async def health():
         "app": "ViralClipper API",
         "has_gemini_key": bool(settings.GEMINI_API_KEY),
         "has_groq_key": bool(get_groq_api_key()),
+        "yt_engine_version": "3-engine-clipto-pytubefix-ytdlp",
     }
 
 
