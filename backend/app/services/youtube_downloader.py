@@ -1,16 +1,12 @@
 """
-YouTube video download service with multi-layer Cloud Anti-Bot Bypass:
-1. yt-dlp Mobile/Embedded Player Client Rotation (tv_embedded, ios, android_vr, mweb)
-2. Automatic Piped / Invidious / Cobalt API Cloud Proxy Fallback when datacenter IPs are blocked.
+YouTube video download service using:
+1. pytubefix (with built-in Node.js Proof-of-Origin / PoToken generator for ANDROID, MWEB, WEB, IOS)
+2. yt-dlp fallback
 """
 
-import json
 import logging
 import os
 import re
-import subprocess
-import urllib.request
-import urllib.error
 import yt_dlp
 from app.config import settings
 
@@ -30,174 +26,92 @@ def is_valid_youtube_url(url: str) -> bool:
     return bool(YOUTUBE_REGEX.search(url.strip()))
 
 
-def extract_video_id(url: str) -> str:
-    """Extract the 11-character YouTube video ID."""
-    match = YOUTUBE_REGEX.search(url.strip())
-    return match.group(5) if match else ""
-
-
-def _download_via_piped_or_invidious(video_id: str, output_path: str) -> dict:
+def _download_via_pytubefix(clean_url: str, output_dir: str, output_filename: str) -> dict:
     """
-    Fallback downloader using public Piped & Invidious API instances
-    when YouTube blocks a cloud server's datacenter IP address.
+    Download YouTube video using pytubefix with automatic PoToken generation
+    (bypasses cloud datacenter bot checks without requiring cookies or accounts).
     """
-    piped_instances = [
-        "https://pipedapi.kavin.rocks",
-        "https://pipedapi.tokhmi.xyz",
-        "https://pipedapi.moomoo.me",
-        "https://pipedapi.syncpundit.io",
-        "https://api.piped.private.coffee",
-    ]
+    from pytubefix import YouTube
 
-    for instance in piped_instances:
+    clients = ["ANDROID", "MWEB", "WEB", "IOS", "ANDROID_VR"]
+    last_err = None
+
+    for client in clients:
         try:
-            api_url = f"{instance}/streams/{video_id}"
-            logger.info(f"Trying Piped cloud relay: {api_url}")
-            req = urllib.request.Request(
-                api_url,
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+            logger.info(f"Trying pytubefix download with client={client} (auto PoToken)...")
+            yt = YouTube(clean_url, client=client)
+            title = yt.title or "YouTube Video"
+            duration = float(yt.length or 0.0)
+            uploader = yt.author or "YouTube Creator"
+
+            # Prefer progressive MP4 stream (contains both video + audio, zero merge overhead)
+            stream = (
+                yt.streams.filter(progressive=True, file_extension="mp4")
+                .order_by("resolution")
+                .desc()
+                .first()
             )
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
+            if not stream:
+                stream = yt.streams.filter(progressive=True).first()
 
-            title = data.get("title", "YouTube Video")
-            duration = float(data.get("duration", 0.0) or 0.0)
-            uploader = data.get("uploader", "YouTube Creator")
-
-            # Check muxed streams first, or pair video + audio stream
-            video_streams = data.get("videoStreams", [])
-            audio_streams = data.get("audioStreams", [])
-
-            muxed = [
-                s for s in video_streams
-                if not s.get("videoOnly", True) and s.get("url")
-            ]
-            if muxed:
-                stream_url = muxed[0]["url"]
-                cmd = [
-                    "ffmpeg", "-y", "-nostats",
-                    "-i", stream_url,
-                    "-c", "copy",
-                    output_path,
-                ]
-                res = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
-                if res.returncode == 0 and os.path.exists(output_path):
+            if stream:
+                final_path = os.path.join(output_dir, output_filename)
+                if os.path.exists(final_path):
+                    os.remove(final_path)
+                stream.download(output_path=output_dir, filename=output_filename)
+                if os.path.exists(final_path) and os.path.getsize(final_path) > 1000:
+                    file_size = os.path.getsize(final_path)
+                    logger.info(
+                        f"pytubefix ({client}) succeeded: '{title}' ({file_size} bytes)"
+                    )
                     return {
-                        "video_path": output_path,
+                        "video_path": final_path,
                         "title": title,
                         "duration": duration,
                         "uploader": uploader,
-                        "file_size": os.path.getsize(output_path),
-                    }
-
-            # Otherwise combine best <=720p videoOnly stream + audio stream via FFmpeg
-            vid_only = [
-                s for s in video_streams
-                if s.get("url") and s.get("height", 720) <= 720
-            ]
-            if vid_only and audio_streams:
-                v_url = vid_only[0]["url"]
-                a_url = audio_streams[0]["url"]
-                cmd = [
-                    "ffmpeg", "-y", "-nostats",
-                    "-i", v_url,
-                    "-i", a_url,
-                    "-c:v", "copy",
-                    "-c:a", "aac",
-                    "-shortest",
-                    output_path,
-                ]
-                res = subprocess.run(cmd, capture_output=True, text=True, timeout=240)
-                if res.returncode == 0 and os.path.exists(output_path):
-                    return {
-                        "video_path": output_path,
-                        "title": title,
-                        "duration": duration,
-                        "uploader": uploader,
-                        "file_size": os.path.getsize(output_path),
+                        "file_size": file_size,
                     }
         except Exception as e:
-            logger.warning(f"Piped instance {instance} failed: {e}")
+            last_err = e
+            logger.warning(f"pytubefix ({client}) failed: {e}")
 
-    # Try Invidious API instances as secondary fallback
-    invidious_instances = [
-        "https://inv.nadeko.net",
-        "https://invidious.nerdvpn.de",
-        "https://invidious.privacyredirect.com",
-    ]
-    for instance in invidious_instances:
-        try:
-            api_url = f"{instance}/api/v1/videos/{video_id}"
-            logger.info(f"Trying Invidious cloud relay: {api_url}")
-            req = urllib.request.Request(
-                api_url,
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
-            )
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-
-            title = data.get("title", "YouTube Video")
-            duration = float(data.get("lengthSeconds", 0.0) or 0.0)
-            uploader = data.get("author", "YouTube Creator")
-            format_streams = data.get("formatStreams", [])
-            if format_streams:
-                stream_url = format_streams[0].get("url")
-                if stream_url:
-                    cmd = [
-                        "ffmpeg", "-y", "-nostats",
-                        "-i", stream_url,
-                        "-c", "copy",
-                        output_path,
-                    ]
-                    res = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
-                    if res.returncode == 0 and os.path.exists(output_path):
-                        return {
-                            "video_path": output_path,
-                            "title": title,
-                            "duration": duration,
-                            "uploader": uploader,
-                            "file_size": os.path.getsize(output_path),
-                        }
-        except Exception as e:
-            logger.warning(f"Invidious instance {instance} failed: {e}")
-
-    raise RuntimeError(
-        "YouTube blocked the cloud datacenter IP across all player clients and relays. "
-        "Try uploading the MP4 file directly or using the local server for this specific video."
-    )
+    raise RuntimeError(f"pytubefix clients exhausted: {last_err}")
 
 
 def download_youtube_video(url: str, job_id: str) -> dict:
     """
     Download a YouTube video to the uploads directory.
-    Rotates across non-web player clients (android_vr, tv_embedded, ios, mweb)
-    to bypass YouTube's 'Sign in to confirm you're not a bot' check on cloud servers.
+    Uses pytubefix (with built-in Node.js PoToken generator) first, then yt-dlp fallback.
     """
     clean_url = url.strip()
     if not is_valid_youtube_url(clean_url):
         raise ValueError("Invalid YouTube URL. Please provide a valid youtube.com or youtu.be link.")
 
-    video_id = extract_video_id(clean_url)
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     output_filename = f"{job_id}.mp4"
     output_path = os.path.join(settings.UPLOAD_DIR, output_filename)
     output_template = os.path.join(settings.UPLOAD_DIR, f"{job_id}.%(ext)s")
 
-    # Client profiles ordered by highest success rate on cloud datacenter IPs without cookies
+    # 1. Primary Cloud Engine: pytubefix with built-in Node.js Proof-of-Origin (PoToken)
+    try:
+        return _download_via_pytubefix(clean_url, settings.UPLOAD_DIR, output_filename)
+    except Exception as e:
+        logger.warning(f"pytubefix primary download failed ({e}), trying yt-dlp fallback...")
+
+    # 2. Secondary Engine: yt-dlp with mobile/VR player clients
     client_profiles = [
-        ["android_vr", "tv", "ios"],
-        ["ios", "mweb"],
-        ["tv_embedded", "android_creator"],
-        ["web_creator", "mediaconnect"],
+        ["android_vr", "ios"],
+        ["mweb", "ios"],
+        ["mediaconnect", "web_creator"],
     ]
 
     last_error = None
-
     for clients in client_profiles:
         ydl_opts = {
             "format": (
                 "bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/"
                 "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/"
-                "best[height<=720][ext=mp4]/best[height<=720]/bestvideo+bestaudio/best"
+                "best[height<=720][ext=mp4]/best[height<=720]/best"
             ),
             "outtmpl": output_template,
             "merge_output_format": "mp4",
@@ -210,21 +124,11 @@ def download_youtube_video(url: str, job_id: str) -> dict:
             "extractor_args": {
                 "youtube": {
                     "player_client": clients,
-                    "player_skip": ["webpage", "configs"],
                 }
-            },
-            "http_headers": {
-                "User-Agent": (
-                    "Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/126.0.0.0 Mobile Safari/537.36"
-                ),
-                "Accept-Language": "en-US,en;q=0.9",
             },
         }
 
         try:
-            logger.info(f"Trying YouTube download with player_client={clients} -> Job {job_id}")
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(clean_url, download=True)
                 title = info.get("title", "YouTube Video")
@@ -242,7 +146,6 @@ def download_youtube_video(url: str, job_id: str) -> dict:
 
             if os.path.exists(final_path) and os.path.getsize(final_path) > 1000:
                 file_size = os.path.getsize(final_path)
-                logger.info(f"YouTube download succeeded via {clients}: '{title}' ({file_size} bytes)")
                 return {
                     "video_path": final_path,
                     "title": title,
@@ -253,13 +156,5 @@ def download_youtube_video(url: str, job_id: str) -> dict:
         except Exception as e:
             last_error = e
             logger.warning(f"yt-dlp profile {clients} failed: {e}")
-
-    # If all yt-dlp player_client profiles hit the bot check on the cloud IP, fall back to Piped/Invidious relay
-    if video_id:
-        logger.info(f"All yt-dlp profiles blocked by YouTube datacenter check. Falling back to cloud relay for {video_id}...")
-        try:
-            return _download_via_piped_or_invidious(video_id, output_path)
-        except Exception as relay_err:
-            logger.warning(f"Cloud relay fallback also failed: {relay_err}")
 
     raise RuntimeError(f"Failed to download YouTube video: {last_error}")
