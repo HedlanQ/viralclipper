@@ -56,11 +56,44 @@ def _get_cache_path(video_path: str, engine_tag: str) -> str:
 def _extract_audio_for_transcription(video_path: str, for_cloud: bool = False) -> str:
     """
     Extract a compact mono audio file for speech recognition.
-    For Groq Cloud API, uses 16kHz 48kbps M4A (<4MB for 15 mins) so upload is sub-second
-    and always stays well under the 25MB API limit.
+    For Groq Cloud API:
+      - First tries instant stream copy (-c:a copy) if the audio is already small (<19MB), which takes <2s!
+      - Otherwise encodes to 16kHz 24kbps mono M4A with a generous 600s timeout for slow cloud CPUs.
     """
     os.makedirs(settings.TEMP_DIR, exist_ok=True)
     if for_cloud:
+        temp_copy = os.path.join(settings.TEMP_DIR, f"audio_copy_{uuid.uuid4().hex[:8]}.m4a")
+        cmd_copy = [
+            "ffmpeg",
+            "-y",
+            "-nostats",
+            "-vn",
+            "-sn",
+            "-dn",
+            "-i", video_path,
+            "-c:a", "copy",
+            temp_copy,
+        ]
+        try:
+            res_copy = subprocess.run(cmd_copy, capture_output=True, text=True, timeout=180)
+            if (
+                res_copy.returncode == 0
+                and os.path.exists(temp_copy)
+                and 1000 < os.path.getsize(temp_copy) < 19 * 1024 * 1024
+            ):
+                logger.info(
+                    f"Instant audio stream copy succeeded ({os.path.getsize(temp_copy)} bytes)"
+                )
+                return temp_copy
+        except Exception as e:
+            logger.warning(f"Audio stream copy skipped ({e}), falling back to 24k encode...")
+
+        if os.path.exists(temp_copy):
+            try:
+                os.remove(temp_copy)
+            except Exception:
+                pass
+
         temp_audio = os.path.join(settings.TEMP_DIR, f"audio_{uuid.uuid4().hex[:8]}.m4a")
         cmd = [
             "ffmpeg",
@@ -92,7 +125,7 @@ def _extract_audio_for_transcription(video_path: str, for_cloud: bool = False) -
             temp_audio,
         ]
 
-    res = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+    res = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
     if res.returncode == 0 and os.path.exists(temp_audio):
         return temp_audio
     logger.warning("Fast audio extraction failed, falling back to direct video path.")

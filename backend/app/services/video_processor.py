@@ -226,7 +226,7 @@ def _cut_single_clip(
                 output_path,
             ]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
             if result.returncode == 0:
                 cut_success = True
                 total_dur = sum(p_end - p_start for p_start, p_end in pieces)
@@ -263,7 +263,7 @@ def _cut_single_clip(
             "-movflags", "+faststart",
             output_path,
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
         if result.returncode != 0:
             logger.error(f"FFmpeg error for clip #{clip.rank}: {result.stderr[-500:]}")
             raise RuntimeError(f"Failed to cut clip #{clip.rank}: {result.stderr[-200:]}")
@@ -286,7 +286,8 @@ def cut_clips(
     Cut all clips in parallel using a thread pool for 3-4x faster execution.
     """
     os.makedirs(output_dir, exist_ok=True)
-    with ThreadPoolExecutor(max_workers=min(2, max(1, len(clips)))) as executor:
+    # Run 1 FFmpeg worker at a time on low-CPU/RAM cloud servers to prevent CPU throttling and OOM
+    with ThreadPoolExecutor(max_workers=1) as executor:
         futures = [
             executor.submit(
                 _cut_single_clip,
