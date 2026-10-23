@@ -12,7 +12,8 @@ WORKDIR /app
 # Install lightweight cloud dependencies (~80MB RAM usage, no heavy local PyTorch/Whisper weights)
 COPY backend/requirements-cloud.txt ./backend/requirements-cloud.txt
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r backend/requirements-cloud.txt
+    pip install --no-cache-dir -r backend/requirements-cloud.txt && \
+    pip install --no-cache-dir --upgrade --pre "yt-dlp[default]" bgutil-ytdlp-pot-provider
 
 # Copy application code
 COPY backend ./backend
