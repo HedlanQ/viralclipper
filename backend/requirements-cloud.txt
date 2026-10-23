@@ -7,3 +7,4 @@ pydantic-settings==2.5.2
 aiofiles==24.1.0
 python-dotenv==1.0.1
 yt-dlp>=2024.10.0
+pytubefix>=11.2.1
