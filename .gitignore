@@ -1,0 +1,20 @@
+# Virtual environments
+backend/venv/
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Uploaded and generated video files
+backend/uploads/
+backend/output/
+backend/outputs/
+backend/temp/
+
+# Environment variables & secrets (never commit API keys to GitHub!)
+.env
+backend/.env
+*.log
