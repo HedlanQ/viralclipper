@@ -251,9 +251,14 @@ async function checkBackendHealth() {
         const res = await fetch(`${API_BASE}/api/health`, { method: 'GET' });
         if (res.ok) {
             const data = await res.json();
+            if (data.has_groq_key && !settings.groqKey) {
+                aiEngineText.textContent = 'Groq Whisper-V3 Cloud';
+                previewEngine.textContent = 'Groq V3 Cloud';
+                previewEngine.className = 'text-emerald-400 font-semibold';
+            }
             if (data.has_gemini_key && !settings.apiKey) {
-                aiEngineText.textContent = 'Gemini 2.0 (Server)';
-                previewEngine.textContent = 'Gemini AI';
+                aiEngineText.textContent = data.has_groq_key ? 'Groq V3 + Gemini' : 'Gemini 2.0 (Server)';
+                previewEngine.textContent = data.has_groq_key ? 'Groq V3 + Gemini' : 'Gemini AI';
                 previewEngine.className = 'text-emerald-400 font-semibold';
             }
         }

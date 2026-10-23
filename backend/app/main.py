@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.config import settings, ensure_directories
+from app.config import settings, ensure_directories, get_groq_api_key
 from app.models import JobStatus, ClipInfo, ProcessingResult, ProcessRequest, YouTubeRequest
 from app.services.transcription import transcribe_video
 from app.services.analyzer import analyze_transcript
@@ -100,7 +100,7 @@ async def process_video_pipeline(job_id: str):
     config = job_data.get("config", {})
 
     api_key = config.get("gemini_api_key") or settings.GEMINI_API_KEY
-    groq_key = config.get("groq_api_key") or settings.GROQ_API_KEY
+    groq_key = config.get("groq_api_key") or get_groq_api_key()
     min_dur = config.get("target_duration_min") or settings.TARGET_CLIP_DURATION_MIN
     max_dur = config.get("target_duration_max") or settings.TARGET_CLIP_DURATION_MAX
     remove_dead_air = config.get("remove_dead_air", True)
@@ -199,7 +199,7 @@ async def health():
         "status": "ok",
         "app": "ViralClipper API",
         "has_gemini_key": bool(settings.GEMINI_API_KEY),
-        "has_groq_key": bool(settings.GROQ_API_KEY),
+        "has_groq_key": bool(get_groq_api_key()),
     }
 
 
