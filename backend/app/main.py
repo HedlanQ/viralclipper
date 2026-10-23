@@ -112,10 +112,13 @@ async def process_video_pipeline(job_id: str):
         job_data["video_duration"] = duration
         logger.info(f"Video duration: {duration:.1f}s")
 
-        # Step 2: Detect silence
-        update_status(job_id, "transcribing", 12, "Detecting dead air and pauses...")
-        silence_segments = await asyncio.to_thread(detect_silence, video_path)
-        logger.info(f"Found {len(silence_segments)} silence segments")
+        # Step 2: Skip full-file silence scan when Groq Cloud word timestamps are active (saves 45s on cloud CPU!)
+        if groq_key:
+            silence_segments = []
+        else:
+            update_status(job_id, "transcribing", 12, "Detecting dead air and pauses...")
+            silence_segments = await asyncio.to_thread(detect_silence, video_path)
+            logger.info(f"Found {len(silence_segments)} silence segments")
 
         # Step 3: Transcribe
         whisper_desc = (
