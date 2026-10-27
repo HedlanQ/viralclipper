@@ -273,7 +273,7 @@ function switchInputTab(tab) {
 
         dropZone.classList.add('hidden');
         youtubeInputZone.classList.remove('hidden');
-        btnGenerate.disabled = !isValidYouTubeUrl(inputYoutubeUrl.value.trim());
+        btnGenerate.disabled = true;
     }
 }
 
