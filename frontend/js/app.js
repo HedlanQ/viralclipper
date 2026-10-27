@@ -636,11 +636,14 @@ function renderHistoryModal() {
         const itemEl = document.createElement('div');
         itemEl.className = 'bg-dark-900 border border-dark-600 rounded-2xl p-4 space-y-3';
 
-        const clipsHtml = (entry.clips || []).map((clip) => `
+        const clipsHtml = (entry.clips || []).map((clip) => {
+            const fileLabel = clip.filename || `clip_${String(clip.rank).padStart(2, '0')}_score${clip.virality_score}.mp4`;
+            return `
             <div class="bg-dark-800 border border-dark-700 rounded-xl p-3 flex flex-col gap-1.5">
-                <div class="flex items-start justify-between gap-2">
-                    <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-start justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <span class="px-2 py-0.5 bg-primary/20 text-primary-light font-bold rounded text-[11px]">#${clip.rank} (${clip.virality_score}/100)</span>
+                        <span class="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono rounded text-[11px]">📄 ${escapeHtml(fileLabel)}</span>
                         <span class="font-bold text-gray-100 text-xs">${escapeHtml(clip.title)}</span>
                     </div>
                     <span class="text-[11px] font-mono text-gray-400 whitespace-nowrap bg-dark-700 px-2 py-0.5 rounded">
@@ -657,7 +660,8 @@ function renderHistoryModal() {
                     </button>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
 
         itemEl.innerHTML = `
             <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-dark-700">
@@ -733,11 +737,16 @@ function createClipCard(clip, jobId) {
             </video>
         </div>
         <div class="p-4">
-            <div class="flex items-start justify-between gap-2 mb-2">
-                <h3 class="font-bold text-sm text-gray-100 flex-1 leading-snug">${escapeHtml(clip.title)}</h3>
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+                <span class="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono rounded text-[11px]">
+                    📄 ${escapeHtml(clip.filename || `clip_${String(clip.rank).padStart(2, '0')}_score${clip.virality_score}.mp4`)}
+                </span>
                 <span class="text-[11px] font-mono text-gray-400 whitespace-nowrap bg-dark-700 px-2 py-0.5 rounded-md">
                     ${formatDuration(clip.start_time)} - ${formatDuration(clip.end_time)}
                 </span>
+            </div>
+            <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="font-bold text-sm text-gray-100 flex-1 leading-snug">${escapeHtml(clip.title)}</h3>
             </div>
 
             <div class="flex items-center gap-2 mb-2.5">
