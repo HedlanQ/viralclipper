@@ -596,7 +596,7 @@ function createClipCard(clip, jobId) {
                     <button class="btn-copy-caption px-2.5 py-1.5 bg-dark-700 hover:bg-dark-600 rounded-lg text-xs text-gray-300 font-medium transition-all" title="Copy title & hook caption">
                         📋 Copy
                     </button>
-                    <a href="${clipUrl}" download="${clip.filename}" class="btn-download text-xs font-semibold">
+                    <a href="${clipUrl}?download=true" download="${clip.filename}" class="btn-download text-xs font-semibold">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>

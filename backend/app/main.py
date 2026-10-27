@@ -154,13 +154,23 @@ async def process_video_pipeline(job_id: str):
         if not clips:
             raise RuntimeError("Could not identify viral moments. Try adjusting clip duration.")
 
-        # Step 5: Cut clips
-        cutting_desc = (
-            "Excising dead-air & cutting clips..."
-            if remove_dead_air
-            else "Cutting video clips with FFmpeg..."
+        # Step 5: Cut clips with live per-clip progress updates (85% -> 95%)
+        total_clips_to_cut = len(clips)
+        update_status(
+            job_id,
+            "cutting",
+            85,
+            f"Cutting clip 1 of {total_clips_to_cut}...",
         )
-        update_status(job_id, "cutting", 85, cutting_desc)
+
+        def on_clip_progress(done_count: int, total_count: int):
+            pct = 85 + int((done_count / max(1, total_count)) * 10)
+            if done_count < total_count:
+                desc = f"Cut {done_count}/{total_count} clips • Cutting clip {done_count + 1} of {total_count}..."
+            else:
+                desc = f"All {total_count}/{total_count} clips cut! Finalizing MP4 files..."
+            update_status(job_id, "cutting", min(95, pct), desc)
+
         filenames = await asyncio.to_thread(
             cut_clips,
             video_path,
@@ -168,8 +178,16 @@ async def process_video_pipeline(job_id: str):
             job_output_dir,
             silence_segments=silence_segments,
             remove_dead_air=remove_dead_air,
+            progress_callback=on_clip_progress,
         )
-        update_status(job_id, "cutting", 95, "Finalizing MP4 files...")
+
+        # Free disk/RAM space by removing the large source upload once clips are cut
+        if video_path and os.path.exists(video_path):
+            try:
+                os.remove(video_path)
+                logger.info(f"Cleaned up source upload {video_path} to free cloud memory.")
+            except Exception:
+                pass
 
         # Step 6: Complete
         elapsed = time.time() - start_time
@@ -376,19 +394,24 @@ async def get_results(job_id: str):
 
 
 @app.get("/api/clips/{job_id}/{clip_filename}")
-async def serve_clip(job_id: str, clip_filename: str):
-    """Serve a generated clip video file."""
-    if job_id not in jobs:
-        raise HTTPException(status_code=404, detail="Job not found")
-
-    clip_path = os.path.join(settings.OUTPUT_DIR, job_id, clip_filename)
+async def serve_clip(job_id: str, clip_filename: str, download: bool = False):
+    """Serve a generated clip video file (works even if server reloaded since clips are on disk)."""
+    safe_job_id = os.path.basename(job_id)
+    safe_filename = os.path.basename(clip_filename)
+    clip_path = os.path.join(settings.OUTPUT_DIR, safe_job_id, safe_filename)
     if not os.path.exists(clip_path):
         raise HTTPException(status_code=404, detail="Clip file not found")
+
+    headers = {}
+    if download:
+        headers["Content-Disposition"] = f'attachment; filename="{safe_filename}"'
+    else:
+        headers["Content-Disposition"] = f'inline; filename="{safe_filename}"'
 
     return FileResponse(
         clip_path,
         media_type="video/mp4",
-        filename=clip_filename,
+        headers=headers,
     )
 
 
