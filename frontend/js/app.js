@@ -14,7 +14,9 @@ let currentState = 'upload';
 let activeInputTab = 'upload'; // 'upload' or 'youtube'
 let currentJobId = null;
 let selectedFile = null;
+let currentVideoLabel = '';
 let pollInterval = null;
+const HISTORY_STORAGE_KEY = 'viralclipper_history_v1';
 
 // Settings loaded from localStorage
 const settings = {
@@ -93,6 +95,14 @@ const selectDuration = document.getElementById('select-duration');
 const checkDeadAir = document.getElementById('check-dead-air');
 const btnSaveSettings = document.getElementById('btn-save-settings');
 
+// History Elements
+const btnOpenHistory = document.getElementById('btn-open-history');
+const btnCloseHistory = document.getElementById('btn-close-history');
+const btnClearHistory = document.getElementById('btn-clear-history');
+const historyModal = document.getElementById('history-modal');
+const historyList = document.getElementById('history-list');
+const historyCountBadge = document.getElementById('history-count-badge');
+
 // Badges
 const aiEngineText = document.getElementById('ai-engine-text');
 const previewDuration = document.getElementById('preview-duration');
@@ -107,6 +117,7 @@ async function init() {
     initSettingsUI();
     initDragDrop();
     initEventListeners();
+    updateHistoryBadge();
     await checkBackendHealth();
 }
 
@@ -218,6 +229,32 @@ function initEventListeners() {
         settingsModal.classList.add('hidden');
         showToast('Settings saved successfully!', 'success');
     });
+
+    // History Modal
+    if (btnOpenHistory) {
+        btnOpenHistory.addEventListener('click', () => {
+            renderHistoryModal();
+            historyModal.classList.remove('hidden');
+        });
+    }
+    if (btnCloseHistory) {
+        btnCloseHistory.addEventListener('click', () => {
+            historyModal.classList.add('hidden');
+        });
+    }
+    if (historyModal) {
+        historyModal.addEventListener('click', (e) => {
+            if (e.target === historyModal) historyModal.classList.add('hidden');
+        });
+    }
+    if (btnClearHistory) {
+        btnClearHistory.addEventListener('click', () => {
+            localStorage.removeItem(HISTORY_STORAGE_KEY);
+            updateHistoryBadge();
+            renderHistoryModal();
+            showToast('History cleared!', 'success');
+        });
+    }
 }
 
 function switchInputTab(tab) {
@@ -337,6 +374,7 @@ async function handleGenerate() {
 
         if (activeInputTab === 'upload') {
             if (!selectedFile) return;
+            currentVideoLabel = selectedFile.name;
             btnGenerate.textContent = 'Uploading Video...';
             uploadProgress.classList.remove('hidden');
             jobId = await uploadFile(selectedFile);
@@ -349,6 +387,7 @@ async function handleGenerate() {
                 return;
             }
 
+            currentVideoLabel = ytUrl;
             btnGenerate.innerHTML = '<span>Downloading from YouTube...</span><span class="animate-spin">⏳</span>';
             uploadProgress.classList.remove('hidden');
             uploadProgressBar.style.width = '100%';
@@ -529,11 +568,142 @@ async function fetchResults(jobId) {
         if (!res.ok) throw new Error('Failed to fetch results');
 
         const data = await res.json();
+        saveToHistory(data);
         renderResults(data);
         switchState('results');
     } catch (err) {
         showError(`Failed to load results: ${err.message}`);
     }
+}
+
+// ─── Browser History (Captions, Quotes & Clips) ──────────────────────────────
+
+function getHistory() {
+    try {
+        return JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
+    } catch {
+        return [];
+    }
+}
+
+function updateHistoryBadge() {
+    if (!historyCountBadge) return;
+    const list = getHistory();
+    if (list.length > 0) {
+        historyCountBadge.textContent = String(list.length);
+        historyCountBadge.classList.remove('hidden');
+    } else {
+        historyCountBadge.classList.add('hidden');
+    }
+}
+
+function saveToHistory(data) {
+    try {
+        const list = getHistory().filter((item) => item.job_id !== data.job_id);
+        list.unshift({
+            job_id: data.job_id,
+            video_name: currentVideoLabel || `Video (${formatDuration(data.video_duration)})`,
+            created_at: new Date().toLocaleString(),
+            video_duration: data.video_duration,
+            processing_time: data.processing_time,
+            total_clips: data.total_clips,
+            clips: data.clips,
+        });
+        // Keep up to 30 past video runs in localStorage
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(list.slice(0, 30)));
+        updateHistoryBadge();
+    } catch (e) {
+        console.warn('Could not save history:', e);
+    }
+}
+
+function renderHistoryModal() {
+    if (!historyList) return;
+    const list = getHistory();
+    if (list.length === 0) {
+        historyList.innerHTML = `
+            <div class="text-center py-12 text-gray-500">
+                <div class="text-3xl mb-2">📭</div>
+                <p class="text-sm font-medium text-gray-400">No history yet</p>
+                <p class="text-xs mt-1">Process a video and all its titles, captions, quotes & timestamps will be saved here automatically!</p>
+            </div>
+        `;
+        return;
+    }
+
+    historyList.innerHTML = '';
+    list.forEach((entry, idx) => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'bg-dark-900 border border-dark-600 rounded-2xl p-4 space-y-3';
+
+        const clipsHtml = (entry.clips || []).map((clip) => `
+            <div class="bg-dark-800 border border-dark-700 rounded-xl p-3 flex flex-col gap-1.5">
+                <div class="flex items-start justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-primary/20 text-primary-light font-bold rounded text-[11px]">#${clip.rank} (${clip.virality_score}/100)</span>
+                        <span class="font-bold text-gray-100 text-xs">${escapeHtml(clip.title)}</span>
+                    </div>
+                    <span class="text-[11px] font-mono text-gray-400 whitespace-nowrap bg-dark-700 px-2 py-0.5 rounded">
+                        ${formatDuration(clip.start_time)} - ${formatDuration(clip.end_time)} (${Number(clip.duration || 0).toFixed(1)}s)
+                    </span>
+                </div>
+                <p class="text-[11px] text-gray-300 italic bg-dark-900/60 p-2 rounded border border-dark-700/50">
+                    ${escapeHtml(clip.description)}
+                </p>
+                <div class="flex items-center justify-between pt-1 gap-2">
+                    <span class="text-[11px] text-gray-400 truncate">${escapeHtml(clip.reason)}</span>
+                    <button data-caption="${escapeHtml(`${clip.title}\n\n${clip.description}\n\n${clip.reason}\n\n#viral #shorts #reels`)}" class="btn-hist-copy px-3 py-1 bg-primary/20 hover:bg-primary/30 text-primary-light border border-primary/30 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all">
+                        📋 Copy Caption
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        itemEl.innerHTML = `
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-dark-700">
+                <div>
+                    <h4 class="font-bold text-sm text-gray-100">${escapeHtml(entry.video_name)}</h4>
+                    <p class="text-[11px] text-gray-400">${escapeHtml(entry.created_at)} • ${entry.total_clips} clips • Video length: ${formatDuration(entry.video_duration || 0)}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button data-idx="${idx}" class="btn-hist-open px-3 py-1.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-semibold transition-all">
+                        Open Clips View
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 gap-2.5">
+                ${clipsHtml}
+            </div>
+        `;
+
+        historyList.appendChild(itemEl);
+    });
+
+    // Attach copy caption listeners
+    historyList.querySelectorAll('.btn-hist-copy').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const text = btn.getAttribute('data-caption') || '';
+            navigator.clipboard.writeText(text).then(() => {
+                const orig = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => { btn.textContent = orig; }, 2000);
+                showToast('Full caption & quote copied to clipboard!', 'success');
+            });
+        });
+    });
+
+    // Attach "Open Clips View" listeners
+    historyList.querySelectorAll('.btn-hist-open').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(btn.getAttribute('data-idx'), 10);
+            const entry = list[idx];
+            if (entry) {
+                historyModal.classList.add('hidden');
+                renderResults(entry);
+                switchState('results');
+            }
+        });
+    });
 }
 
 function renderResults(data) {
