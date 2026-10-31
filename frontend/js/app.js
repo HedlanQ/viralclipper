@@ -78,6 +78,14 @@ const processingMessage = document.getElementById('processing-message');
 const resultsSummary = document.getElementById('results-summary');
 const clipsGrid = document.getElementById('clips-grid');
 const btnNewVideo = document.getElementById('btn-new-video');
+const btnCopyTranscript = document.getElementById('btn-copy-transcript');
+const btnCopyTranscriptText = document.getElementById('btn-copy-transcript-text');
+const checkSelectAll = document.getElementById('check-select-all');
+const selectedClipsCount = document.getElementById('selected-clips-count');
+const btnDownloadSelected = document.getElementById('btn-download-selected');
+
+let currentResultsData = null;
+const selectedClipsSet = new Set();
 
 // Error elements
 const errorMessage = document.getElementById('error-message');
@@ -191,6 +199,17 @@ function initEventListeners() {
     btnNewVideo.addEventListener('click', resetApp);
     btnRetry.addEventListener('click', handleRetry);
     btnErrorReset.addEventListener('click', resetApp);
+
+    // Results Actions (Copy Transcript & Batch Download)
+    if (btnCopyTranscript) {
+        btnCopyTranscript.addEventListener('click', handleCopyTranscript);
+    }
+    if (checkSelectAll) {
+        checkSelectAll.addEventListener('change', handleToggleSelectAll);
+    }
+    if (btnDownloadSelected) {
+        btnDownloadSelected.addEventListener('click', handleDownloadSelected);
+    }
 
     // Settings Modal
     btnOpenSettings.addEventListener('click', () => {
@@ -608,6 +627,7 @@ function saveToHistory(data) {
             processing_time: data.processing_time,
             total_clips: data.total_clips,
             clips: data.clips,
+            transcript_text: data.transcript_text || '',
         });
         // Keep up to 30 past video runs in localStorage
         localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(list.slice(0, 30)));
@@ -670,6 +690,11 @@ function renderHistoryModal() {
                     <p class="text-[11px] text-gray-400">${escapeHtml(entry.created_at)} • ${entry.total_clips} clips • Video length: ${formatDuration(entry.video_duration || 0)}</p>
                 </div>
                 <div class="flex items-center gap-2">
+                    ${entry.transcript_text ? `
+                        <button data-idx="${idx}" class="btn-hist-copy-transcript px-2.5 py-1.5 bg-dark-700 hover:bg-dark-600 border border-dark-600 rounded-xl text-xs text-gray-300 font-medium transition-all" title="Copy full transcript">
+                            📝 Copy Transcript
+                        </button>
+                    ` : ''}
                     <button data-idx="${idx}" class="btn-hist-open px-3 py-1.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-semibold transition-all">
                         Open Clips View
                     </button>
@@ -696,6 +721,22 @@ function renderHistoryModal() {
         });
     });
 
+    // Attach copy transcript in history
+    historyList.querySelectorAll('.btn-hist-copy-transcript').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(btn.getAttribute('data-idx'), 10);
+            const entry = list[idx];
+            if (entry && entry.transcript_text) {
+                navigator.clipboard.writeText(entry.transcript_text).then(() => {
+                    const orig = btn.textContent;
+                    btn.textContent = '✓ Copied!';
+                    setTimeout(() => { btn.textContent = orig; }, 2000);
+                    showToast('Full transcript copied to clipboard!', 'success');
+                });
+            }
+        });
+    });
+
     // Attach "Open Clips View" listeners
     historyList.querySelectorAll('.btn-hist-open').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -711,6 +752,11 @@ function renderHistoryModal() {
 }
 
 function renderResults(data) {
+    currentResultsData = data;
+    selectedClipsSet.clear();
+    if (checkSelectAll) checkSelectAll.checked = false;
+    updateSelectedCountUI();
+
     resultsSummary.textContent = `${data.total_clips} viral clips generated from ${formatDuration(data.video_duration)} video • Processed in ${data.processing_time}s`;
     clipsGrid.innerHTML = '';
 
@@ -720,6 +766,107 @@ function renderResults(data) {
     });
 }
 
+function handleCopyTranscript() {
+    if (!currentResultsData) return;
+    const transcript = currentResultsData.transcript_text;
+    if (!transcript) {
+        // Fallback: assemble transcript from generated clip quotes if full transcript is empty
+        const fallback = (currentResultsData.clips || []).map(c => `[${formatDuration(c.start_time)} - ${formatDuration(c.end_time)}] ${c.title}\n${c.description}`).join('\n\n');
+        if (fallback) {
+            navigator.clipboard.writeText(fallback).then(() => {
+                showToast('Copied clips transcript to clipboard!', 'success');
+            });
+        } else {
+            showToast('No transcript text available.', 'error');
+        }
+        return;
+    }
+
+    navigator.clipboard.writeText(transcript).then(() => {
+        if (btnCopyTranscriptText) {
+            const originalText = btnCopyTranscriptText.textContent;
+            btnCopyTranscriptText.textContent = '✓ Copied!';
+            setTimeout(() => { btnCopyTranscriptText.textContent = originalText; }, 2000);
+        }
+        showToast('Full transcript copied to clipboard!', 'success');
+    }).catch(() => {
+        showToast('Failed to copy to clipboard.', 'error');
+    });
+}
+
+function handleToggleSelectAll() {
+    if (!currentResultsData || !currentResultsData.clips) return;
+    const isChecked = checkSelectAll.checked;
+    selectedClipsSet.clear();
+
+    const checkboxes = clipsGrid.querySelectorAll('.clip-select-check');
+    checkboxes.forEach((cb) => {
+        cb.checked = isChecked;
+        const filename = cb.getAttribute('data-filename');
+        if (isChecked && filename) {
+            selectedClipsSet.add(filename);
+        }
+    });
+
+    updateSelectedCountUI();
+}
+
+function handleClipCheckboxChange(filename, isChecked) {
+    if (isChecked) {
+        selectedClipsSet.add(filename);
+    } else {
+        selectedClipsSet.delete(filename);
+    }
+
+    const totalClips = currentResultsData ? currentResultsData.clips.length : 0;
+    if (checkSelectAll) {
+        checkSelectAll.checked = totalClips > 0 && selectedClipsSet.size === totalClips;
+    }
+
+    updateSelectedCountUI();
+}
+
+function updateSelectedCountUI() {
+    const count = selectedClipsSet.size;
+    if (selectedClipsCount) {
+        selectedClipsCount.textContent = `${count} selected`;
+    }
+    if (btnDownloadSelected) {
+        btnDownloadSelected.disabled = count === 0;
+        btnDownloadSelected.innerHTML = `
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            <span>Download Selected (${count})</span>
+        `;
+    }
+}
+
+async function handleDownloadSelected() {
+    if (selectedClipsSet.size === 0 || !currentResultsData) return;
+    const filenames = Array.from(selectedClipsSet);
+    const jobId = currentResultsData.job_id;
+
+    showToast(`Starting download for ${filenames.length} clip(s)...`, 'success');
+
+    // Trigger individual downloads with small delay so browser doesn't block multi-download popups
+    for (let i = 0; i < filenames.length; i++) {
+        const fname = filenames[i];
+        const clipUrl = `${API_BASE}/api/clips/${jobId}/${fname}?download=true`;
+
+        const a = document.createElement('a');
+        a.href = clipUrl;
+        a.download = fname;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        if (i < filenames.length - 1) {
+            await new Promise(r => setTimeout(r, 600));
+        }
+    }
+}
+
 function createClipCard(clip, jobId) {
     const card = document.createElement('div');
     card.className = 'clip-card fade-in';
@@ -727,9 +874,14 @@ function createClipCard(clip, jobId) {
     const rankClass = clip.rank <= 3 ? `rank-${clip.rank}` : 'rank-default';
     const viralityClass = clip.virality_score >= 75 ? 'virality-high' : clip.virality_score >= 50 ? 'virality-mid' : 'virality-low';
     const clipUrl = `${API_BASE}/api/clips/${jobId}/${clip.filename}`;
+    const filename = clip.filename || `clip_${String(clip.rank).padStart(2, '0')}_score${clip.virality_score}.mp4`;
 
     card.innerHTML = `
         <div class="relative">
+            <!-- Checkbox selection badge -->
+            <label class="absolute top-3 right-3 z-10 bg-dark-900/80 backdrop-blur-md border border-dark-600 rounded-lg p-1.5 flex items-center justify-center cursor-pointer hover:border-primary transition-all shadow-md">
+                <input type="checkbox" data-filename="${escapeHtml(filename)}" class="clip-select-check w-4 h-4 rounded text-primary bg-dark-900 border-dark-500 cursor-pointer accent-purple-600">
+            </label>
             <div class="rank-badge ${rankClass}">#${clip.rank}</div>
             <video controls preload="metadata" class="w-full rounded-t-2xl">
                 <source src="${clipUrl}" type="video/mp4">
@@ -739,7 +891,7 @@ function createClipCard(clip, jobId) {
         <div class="p-4">
             <div class="flex items-center justify-between gap-2 mb-1.5">
                 <span class="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono rounded text-[11px]">
-                    📄 ${escapeHtml(clip.filename || `clip_${String(clip.rank).padStart(2, '0')}_score${clip.virality_score}.mp4`)}
+                    📄 ${escapeHtml(filename)}
                 </span>
                 <span class="text-[11px] font-mono text-gray-400 whitespace-nowrap bg-dark-700 px-2 py-0.5 rounded-md">
                     ${formatDuration(clip.start_time)} - ${formatDuration(clip.end_time)}
@@ -775,7 +927,7 @@ function createClipCard(clip, jobId) {
                     <button class="btn-copy-caption px-2.5 py-1.5 bg-dark-700 hover:bg-dark-600 rounded-lg text-xs text-gray-300 font-medium transition-all" title="Copy title & hook caption">
                         📋 Copy
                     </button>
-                    <a href="${clipUrl}?download=true" download="${clip.filename}" class="btn-download text-xs font-semibold">
+                    <a href="${clipUrl}?download=true" download="${filename}" class="btn-download text-xs font-semibold">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>
@@ -785,6 +937,12 @@ function createClipCard(clip, jobId) {
             </div>
         </div>
     `;
+
+    const checkbox = card.querySelector('.clip-select-check');
+    checkbox.checked = selectedClipsSet.has(filename);
+    checkbox.addEventListener('change', () => {
+        handleClipCheckboxChange(filename, checkbox.checked);
+    });
 
     const btnCopy = card.querySelector('.btn-copy-caption');
     btnCopy.addEventListener('click', () => {

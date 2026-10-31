@@ -37,6 +37,7 @@ class ProcessingResult(BaseModel):
     clips: list[ClipInfo]
     video_duration: float
     processing_time: float = 0.0
+    transcript_text: Optional[str] = ""
 
 
 class ProcessRequest(BaseModel):
