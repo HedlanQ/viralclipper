@@ -191,12 +191,14 @@ async def process_video_pipeline(job_id: str):
 
         # Step 6: Complete
         elapsed = time.time() - start_time
+        full_transcript = transcript.get("full_text", "")
         job_data["result"] = ProcessingResult(
             job_id=job_id,
             total_clips=len(clips),
             clips=clips,
             video_duration=duration,
             processing_time=round(elapsed, 1),
+            transcript_text=full_transcript,
         )
         update_status(
             job_id,
