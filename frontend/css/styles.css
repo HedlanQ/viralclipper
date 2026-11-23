@@ -1,9 +1,21 @@
-/* ViralClipper Custom Styles */
+/* ViralClipper — Minimal Flat OLED Studio Styles */
 
-/* Background pattern */
+:root {
+    color-scheme: dark;
+    --bg-oled: #09090f;
+    --bg-surface: #11111a;
+    --bg-elevated: #181824;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(225, 29, 72, 0.55);
+    --color-cta: #E11D48;
+    --color-cta-hover: #BE123C;
+}
+
+/* Clean Solid Dark Studio Background */
 body {
-    background-image: radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.03) 1px, transparent 0);
-    background-size: 32px 32px;
+    background-color: var(--bg-oled);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Custom scrollbar */
@@ -12,166 +24,181 @@ body {
     height: 8px;
 }
 ::-webkit-scrollbar-track {
-    background: #16161d;
+    background: #09090f;
 }
 ::-webkit-scrollbar-thumb {
-    background: #2a2a36;
+    background: #232334;
     border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #3a3a48;
+    background: #36364d;
 }
 
-/* Drop zone animations */
+/* Solid-backed sticky top navigation bar — zero overlap or bleed-through */
+.studio-navbar {
+    background-color: #0b0b12;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Clean flat studio cards */
+.bento-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    transition: border-color 200ms ease;
+}
+
+.bento-card:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Drop zone states */
 .drop-zone {
-    animation: breathe 3s ease-in-out infinite;
+    background-color: #0d0d15;
+    border: 1.5px dashed rgba(255, 255, 255, 0.16);
+    transition: border-color 200ms ease, background-color 200ms ease;
 }
 
 .drop-zone:hover {
-    animation: none;
+    border-color: rgba(225, 29, 72, 0.75);
+    background-color: #13131f;
 }
 
 .drop-zone.drag-over {
-    border-color: #8B5CF6 !important;
-    background: rgba(139, 92, 246, 0.08) !important;
-    animation: none;
-    transform: scale(1.02);
+    border-color: #E11D48 !important;
+    border-style: solid !important;
+    background-color: rgba(225, 29, 72, 0.08) !important;
 }
 
-@keyframes breathe {
-    0%, 100% { border-color: rgba(58, 58, 72, 0.5); }
-    50% { border-color: rgba(139, 92, 246, 0.3); }
-}
-
-/* Shimmer effect for progress bars */
+/* Upload progress bar fill */
 .shimmer {
-    background: linear-gradient(
-        90deg,
-        #8B5CF6 0%,
-        #A78BFA 50%,
-        #8B5CF6 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.5s ease-in-out infinite;
+    background-color: #E11D48;
 }
 
-@keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-
-/* Fade in animation */
+/* Smooth entrance transition */
 .fade-in {
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 /* Clip card styles */
 .clip-card {
-    background: #16161d;
-    border: 1px solid #2a2a36;
-    border-radius: 16px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 18px;
     overflow: hidden;
-    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 200ms ease;
 }
 
 .clip-card:hover {
-    border-color: rgba(139, 92, 246, 0.4);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(139, 92, 246, 0.1);
+    border-color: rgba(225, 29, 72, 0.5);
+}
+
+.clip-card.is-selected {
+    border-color: #E11D48;
+    box-shadow: 0 0 0 1px rgba(225, 29, 72, 0.4);
 }
 
 /* Rank badge */
 .rank-badge {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
+    min-width: 34px;
+    height: 28px;
+    padding: 0 9px;
+    border-radius: 8px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
+    font-weight: 800;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
     position: absolute;
     top: 12px;
     left: 12px;
     z-index: 10;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
-.rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; }
-.rank-2 { background: linear-gradient(135deg, #C0C0C0, #A8A8A8); color: #000; }
-.rank-3 { background: linear-gradient(135deg, #CD7F32, #A0522D); color: #fff; }
-.rank-default { background: #2a2a36; color: #8B5CF6; }
+.rank-1 {
+    background-color: #F59E0B;
+    color: #09090f;
+}
+.rank-2 {
+    background-color: #CBD5E1;
+    color: #09090f;
+}
+.rank-3 {
+    background-color: #D97706;
+    color: #F8FAFC;
+}
+.rank-default {
+    background-color: rgba(11, 11, 18, 0.9);
+    color: #FDA4AF;
+    border: 1px solid rgba(225, 29, 72, 0.4);
+}
 
 /* Virality score bar */
 .virality-bar {
     height: 6px;
-    border-radius: 3px;
-    background: #1e1e28;
+    border-radius: 9999px;
+    background-color: #1c1c2b;
     overflow: hidden;
 }
 
 .virality-bar-fill {
     height: 100%;
-    border-radius: 3px;
-    transition: width 1s ease-out;
+    border-radius: 9999px;
+    transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.virality-high { background: linear-gradient(90deg, #10B981, #34D399); }
-.virality-mid { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
-.virality-low { background: linear-gradient(90deg, #EF4444, #F87171); }
+.virality-high { background-color: #10B981; }
+.virality-mid { background-color: #F59E0B; }
+.virality-low { background-color: #E11D48; }
 
 /* Video player in cards */
 .clip-card video {
     width: 100%;
     aspect-ratio: 16/9;
-    background: #000;
+    background: #040408;
     object-fit: contain;
+    display: block;
 }
 
-/* Pulse animation for processing */
-.pulse-dot {
-    animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 0.4; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.3); }
-}
-
-/* Active step indicator */
+/* Pipeline step indicators */
 .step-active {
-    color: #A78BFA !important;
+    color: #F8FAFC !important;
+    border-color: rgba(225, 29, 72, 0.55) !important;
+    background-color: rgba(225, 29, 72, 0.12) !important;
 }
 
-.step-active .w-2 {
-    background: #8B5CF6 !important;
-    animation: pulse 1.5s ease-in-out infinite;
+.step-active .step-dot {
+    background-color: #E11D48 !important;
 }
 
 .step-done {
-    color: #10B981 !important;
+    color: #34D399 !important;
+    border-color: rgba(16, 185, 129, 0.35) !important;
+    background-color: rgba(16, 185, 129, 0.08) !important;
 }
 
-.step-done .w-2 {
-    background: #10B981 !important;
+.step-done .step-dot {
+    background-color: #10B981 !important;
 }
 
 /* Toast notification */
 .toast {
-    background: #16161d;
-    border: 1px solid #2a2a36;
-    border-left: 4px solid #EF4444;
-    border-radius: 8px;
+    background-color: #11111a;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-left: 4px solid #E11D48;
+    border-radius: 12px;
     padding: 12px 16px;
-    min-width: 280px;
-    max-width: 400px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-    animation: slideIn 0.3s ease-out;
+    min-width: 290px;
+    max-width: 420px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+    animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .toast-success {
@@ -179,43 +206,41 @@ body {
 }
 
 @keyframes slideIn {
-    from { opacity: 0; transform: translateX(100%); }
+    from { opacity: 0; transform: translateX(24px); }
     to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes slideOut {
     from { opacity: 1; transform: translateX(0); }
-    to { opacity: 0; transform: translateX(100%); }
+    to { opacity: 0; transform: translateX(24px); }
 }
 
-/* Description toggle */
-.description-toggle {
-    cursor: pointer;
-    color: #6B7280;
-    font-size: 12px;
-    transition: color 0.2s;
-}
-
-.description-toggle:hover {
-    color: #A78BFA;
-}
-
-/* Download button */
+/* Primary Download button on card */
 .btn-download {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 14px;
-    background: #8B5CF6;
-    color: white;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.2s;
+    padding: 7px 14px;
+    background-color: #E11D48;
+    color: #F8FAFC;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    transition: background-color 180ms ease;
     text-decoration: none;
+    cursor: pointer;
 }
 
 .btn-download:hover {
-    background: #7C3AED;
-    transform: translateY(-1px);
+    background-color: #BE123C;
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

@@ -1,282 +1,470 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ViralClipper — AI-Powered Viral Clip Generator</title>
+    <title>ViralClipper — AI Viral Clip Studio</title>
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
                     colors: {
-                        primary: '#8B5CF6',
-                        'primary-dark': '#7C3AED',
-                        'primary-light': '#A78BFA',
+                        primary: '#E11D48',
+                        'primary-dark': '#BE123C',
+                        'primary-light': '#FDA4AF',
+                        indigo: {
+                            400: '#818CF8',
+                            500: '#6366F1',
+                            600: '#4F46E5',
+                        },
                         dark: {
-                            900: '#0f0f14',
-                            800: '#16161d',
-                            700: '#1e1e28',
-                            600: '#2a2a36',
-                            500: '#3a3a48',
+                            950: '#05050a',
+                            900: '#0a0a14',
+                            800: '#0f0f1d',
+                            700: '#16162a',
+                            600: '#22223b',
+                            500: '#323252',
                         },
                     }
                 }
             }
         }
     </script>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=2.5">
 </head>
-<body class="bg-dark-900 text-gray-100 min-h-screen flex flex-col font-sans">
+<body class="bg-dark-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-rose-500/30 selection:text-white">
 
     <!-- Toast Notifications -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+    <div id="toast-container" class="fixed top-20 right-5 z-[70] flex flex-col gap-2.5" aria-live="polite"></div>
 
-    <!-- Header -->
-    <header class="border-b border-dark-600 bg-dark-800/80 backdrop-blur-md sticky top-0 z-40">
-        <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-indigo-500 flex items-center justify-center shadow-lg shadow-primary/30">
-                    <span class="text-xl">⚡</span>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-tight">ViralClipper</h1>
-                    <p class="text-xs text-gray-400">AI Viral Clip Generator & Dead-Air Remover</p>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-3">
-                <!-- AI Engine Mode Indicator -->
-                <div id="ai-engine-badge" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-dark-700 border border-dark-500 text-xs">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span id="ai-engine-text" class="text-gray-300 font-medium">Gemini 2.0 AI</span>
-                </div>
+    <!-- Full-Width Sticky Studio Navbar (flush top-0, isolated above main content) -->
+    <header class="sticky top-0 z-50 w-full studio-navbar shadow-xl shadow-black/60">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+            <div class="flex items-center justify-between gap-3">
+                <a href="#" onclick="window.location.reload(); return false;" class="flex items-center gap-3.5 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded-xl">
+                    <div class="w-10 h-10 rounded-xl bg-rose-600 flex items-center justify-center border border-rose-500/40">
+                        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white">ViralClipper</h1>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-rose-500/15 text-rose-400 border border-rose-500/30">PRO STUDIO</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 hidden sm:block">AI Viral Clip Engine &amp; Zero-Loss Dead-Air Splicer</p>
+                    </div>
+                </a>
 
-                <!-- History Button -->
-                <button id="btn-open-history" class="px-3 py-1.5 bg-dark-700 hover:bg-dark-600 border border-dark-500 rounded-lg text-xs font-medium text-gray-200 transition-all flex items-center gap-1.5">
-                    <span>🕒</span>
-                    <span>History</span>
-                    <span id="history-count-badge" class="hidden px-1.5 py-0.2 bg-primary/30 text-primary-light rounded-full text-[10px] font-bold">0</span>
-                </button>
+                <div class="flex items-center gap-2 sm:gap-2.5">
+                    <!-- AI Engine Mode Indicator -->
+                    <div id="ai-engine-badge" class="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-dark-900/90 border border-white/10 text-xs">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span id="ai-engine-text" class="text-slate-200 font-semibold font-mono text-[11px]">Gemini 2.0 AI</span>
+                    </div>
 
-                <!-- Settings Button -->
-                <button id="btn-open-settings" class="px-3 py-1.5 bg-dark-700 hover:bg-dark-600 border border-dark-500 rounded-lg text-xs font-medium text-gray-200 transition-all flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Settings
-                </button>
+                    <!-- History Button -->
+                    <button id="btn-open-history" type="button" class="cursor-pointer px-3.5 py-2 bg-dark-700/80 hover:bg-dark-600 border border-white/10 hover:border-rose-500/40 rounded-xl text-xs font-semibold text-slate-200 transition-colors duration-200 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">
+                        <svg class="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>History</span>
+                        <span id="history-count-badge" class="hidden px-1.5 py-0.5 bg-rose-500/20 text-rose-300 border border-rose-500/35 rounded-md text-[10px] font-mono font-bold leading-none">0</span>
+                    </button>
+
+                    <!-- Settings Button -->
+                    <button id="btn-open-settings" type="button" class="cursor-pointer px-3.5 py-2 bg-dark-700/80 hover:bg-dark-600 border border-white/10 hover:border-rose-500/40 rounded-xl text-xs font-semibold text-slate-200 transition-colors duration-200 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">
+                        <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>API &amp; Settings</span>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 max-w-6xl mx-auto px-4 py-8 w-full flex flex-col justify-center">
+    <!-- Main Studio Container (isolated in z-0 so scrolled cards/videos never overlap the navbar) -->
+    <main class="relative z-0 isolate flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 w-full flex flex-col justify-center">
 
-        <!-- ═══ State 1: Upload ═══ -->
-        <section id="state-upload" class="flex flex-col items-center justify-center">
+        <!-- ═══ State 1: Bento Studio Upload Workspace ═══ -->
+        <section id="state-upload" class="w-full fade-in">
             
-            <div class="text-center mb-8 max-w-xl">
-                <span class="inline-block px-3 py-1 bg-primary/10 border border-primary/20 text-primary-light text-xs font-semibold rounded-full mb-3">
-                    100% Free & Open Source
-                </span>
-                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
-                    Turn long videos into <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-light via-primary to-indigo-400">raw viral-worthy short clips</span>
+            <!-- Hero Header -->
+            <div class="text-center mb-8 max-w-3xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1 bg-rose-500/10 border border-rose-500/25 text-rose-300 text-xs font-semibold rounded-full mb-4 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                    <span>100% Free &amp; Open-Source AI Video Clipping Suite</span>
+                </div>
+                <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-3.5 leading-[1.12]">
+                    Turn long videos into <span class="text-rose-500">raw viral-worthy short clips</span>
                 </h2>
-                <p class="text-sm text-gray-400">
-                    Whisper AI transcribes speech, dead-air pauses are excised with FFmpeg, and AI extracts the highest-potential 20–40s raw viral-worthy moments ranked by virality.
+                <p class="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                    Whisper V3 transcribes speech with word-level timestamps, FFmpeg excises silent dead-air pauses, and AI extracts the highest-retention moments ranked 0–100.
                 </p>
             </div>
 
-            <!-- Input Method Tabs -->
-            <div class="flex items-center gap-1.5 p-1 bg-dark-800 rounded-2xl border border-dark-600 mb-6 max-w-sm w-full shadow-lg">
-                <button id="tab-upload" class="flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all bg-primary text-white shadow-md flex items-center justify-center gap-1.5">
-                    <span>📁</span> Upload File
-                </button>
-                <button id="tab-youtube" class="flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all text-gray-400 hover:text-white flex items-center justify-center gap-1.5">
-                    <span>📺</span> YouTube Link
-                    <span class="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full leading-none">Soon</span>
-                </button>
-            </div>
+            <!-- 12-Column Bento Studio Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
 
-            <!-- Option A: File Drop Zone -->
-            <div id="drop-zone" class="drop-zone w-full max-w-xl border-2 border-dashed border-dark-500 rounded-3xl p-10 sm:p-14 text-center cursor-pointer transition-all duration-300 hover:border-primary hover:bg-dark-800/60 shadow-2xl">
-                <div id="drop-zone-content">
-                    <div class="w-16 h-16 rounded-2xl bg-dark-700 border border-dark-600 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                        <svg class="w-8 h-8 text-primary-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
+                <!-- Left Bento Column (7 Cols): Source Input & Drop Zone -->
+                <div class="lg:col-span-7 bento-card rounded-3xl p-5 sm:p-7 flex flex-col justify-between shadow-2xl">
+                    <div>
+                        <!-- Card Header + Segmented Input Tabs -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                            <div>
+                                <span class="text-[11px] font-mono uppercase tracking-wider text-rose-400 font-semibold">Step 01 • Source Media</span>
+                                <h3 class="text-base sm:text-lg font-bold text-white">Select Video Input</h3>
+                            </div>
+
+                            <!-- Input Method Tabs -->
+                            <div class="flex items-center gap-1 p-1 bg-dark-950/90 rounded-xl border border-white/10" role="tablist" aria-label="Video input method">
+                                <button id="tab-upload" type="button" role="tab" aria-selected="true" class="cursor-pointer py-2 px-3.5 rounded-lg text-xs font-semibold transition-colors duration-200 bg-rose-600 text-white shadow-md flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">
+                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                    </svg>
+                                    <span>Upload File</span>
+                                </button>
+                                <button id="tab-youtube" type="button" role="tab" aria-selected="false" class="cursor-pointer py-2 px-3.5 rounded-lg text-xs font-semibold transition-colors duration-200 text-slate-400 hover:text-white flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">
+                                    <svg class="w-3.5 h-3.5 text-rose-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                    </svg>
+                                    <span>YouTube</span>
+                                    <span class="px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded leading-none">Soon</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Option A: File Drop Zone -->
+                        <div id="drop-zone" role="button" tabindex="0" aria-label="Upload video file" class="drop-zone w-full rounded-2xl p-8 sm:p-11 text-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">
+                            <div id="drop-zone-content">
+                                <div class="w-16 h-16 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                    </svg>
+                                </div>
+                                <p class="text-base sm:text-lg font-bold text-white mb-1">
+                                    Drag &amp; drop your video here, or <span class="text-rose-400 underline decoration-rose-500/50 underline-offset-4">browse files</span>
+                                </p>
+                                <p class="text-xs text-slate-400 mb-5">Direct local disk streaming • Supports files up to 2GB</p>
+                                <div class="flex flex-wrap items-center justify-center gap-1.5">
+                                    <span class="px-2.5 py-1 rounded-lg bg-dark-950/90 border border-white/10 text-[11px] font-mono text-slate-300">MP4</span>
+                                    <span class="px-2.5 py-1 rounded-lg bg-dark-950/90 border border-white/10 text-[11px] font-mono text-slate-300">MOV</span>
+                                    <span class="px-2.5 py-1 rounded-lg bg-dark-950/90 border border-white/10 text-[11px] font-mono text-slate-300">MKV</span>
+                                    <span class="px-2.5 py-1 rounded-lg bg-dark-950/90 border border-white/10 text-[11px] font-mono text-slate-300">WEBM</span>
+                                    <span class="px-2.5 py-1 rounded-lg bg-dark-950/90 border border-white/10 text-[11px] font-mono text-slate-300">AVI</span>
+                                </div>
+                            </div>
+
+                            <!-- File selected preview -->
+                            <div id="file-preview" class="hidden py-2">
+                                <div class="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/10">
+                                    <svg class="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <p id="file-name" class="text-base font-bold text-white mb-1 truncate max-w-md mx-auto"></p>
+                                <p id="file-size" class="text-xs font-mono text-emerald-400 font-semibold mb-4"></p>
+                                <button id="btn-change-file" type="button" class="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-dark-700 hover:bg-dark-600 border border-white/10 text-xs font-semibold text-slate-200 hover:text-white transition-colors duration-200">
+                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                    </svg>
+                                    <span>Choose Different Video</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Option B: YouTube URL Input Zone (Blurred with Coming Soon Overlay) -->
+                        <div id="youtube-input-zone" class="hidden relative overflow-hidden w-full bg-dark-950/90 border border-white/10 rounded-2xl p-8 sm:p-10 transition-all">
+                            <div class="blur-[5px] opacity-35 pointer-events-none select-none" aria-hidden="true">
+                                <div class="flex items-center gap-3.5 mb-5">
+                                    <div class="w-11 h-11 rounded-2xl bg-rose-600/20 border border-rose-500/30 flex items-center justify-center text-rose-500">
+                                        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm sm:text-base font-bold text-white">Paste YouTube Video or Shorts Link</h4>
+                                        <p class="text-xs text-slate-400">ViralClipper downloads the stream in HD and extracts viral clips</p>
+                                    </div>
+                                </div>
+                                <div class="relative mb-3">
+                                    <input type="text" id="input-youtube-url" disabled placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..." class="w-full bg-dark-900 border border-dark-600 rounded-xl px-4 py-3 text-xs sm:text-sm text-slate-100 placeholder-slate-500 pr-24">
+                                    <button type="button" id="btn-paste-yt" disabled class="absolute right-2.5 top-2 px-3 py-1.5 bg-dark-700 rounded-lg text-xs font-semibold text-slate-300">Paste</button>
+                                </div>
+                            </div>
+
+                            <!-- Coming Soon Overlay -->
+                            <div class="absolute inset-0 flex flex-col items-center justify-center bg-dark-950/65 backdrop-blur-[3px] p-6 text-center z-10">
+                                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 bg-amber-500/15 border border-amber-500/35 text-amber-300 text-xs font-bold uppercase tracking-widest rounded-full mb-2.5 shadow-lg">
+                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                    <span>Coming Soon</span>
+                                </span>
+                                <h4 class="text-base sm:text-lg font-bold text-white mb-1">Direct YouTube Stream Import</h4>
+                                <p class="text-xs text-slate-300 max-w-xs leading-relaxed">
+                                    Cloud YouTube link extraction is being upgraded. Please use <strong class="text-white">Upload File</strong> (up to 2GB) for now.
+                                </p>
+                            </div>
+                        </div>
+
+                        <input type="file" id="file-input" class="hidden" accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm,.mp4,.mov,.avi,.mkv,.webm">
+
+                        <!-- Upload progress bar -->
+                        <div id="upload-progress" class="hidden w-full mt-4">
+                            <div class="bg-dark-950 border border-white/10 rounded-full h-2.5 overflow-hidden">
+                                <div id="upload-progress-bar" class="bg-rose-600 h-full rounded-full transition-all duration-200 shimmer" style="width: 0%"></div>
+                            </div>
+                            <p id="upload-progress-text" class="text-xs font-mono text-slate-400 mt-2 text-center">Uploading video...</p>
+                        </div>
                     </div>
-                    <p class="text-base sm:text-lg font-semibold text-gray-200 mb-1">Drop your video here or <span class="text-primary hover:underline">browse files</span></p>
-                    <p class="text-xs text-gray-400">Supports MP4, MOV, AVI, MKV, WEBM • Up to 2GB</p>
-                </div>
 
-                <!-- File selected preview -->
-                <div id="file-preview" class="hidden">
-                    <div class="w-14 h-14 rounded-2xl bg-primary/20 border border-primary/40 flex items-center justify-center mx-auto mb-3">
-                        <svg class="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                    </div>
-                    <p id="file-name" class="text-base font-semibold text-gray-100 mb-0.5 truncate max-w-sm mx-auto"></p>
-                    <p id="file-size" class="text-xs text-primary-light font-medium"></p>
-                    <button id="btn-change-file" class="mt-3 text-xs text-gray-400 hover:text-white underline transition-colors">Choose different video</button>
-                </div>
-            </div>
+                    <!-- Primary Action Bar -->
+                    <div class="mt-6 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                        <div class="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-dark-950/90 border border-white/10 font-mono">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                <strong id="preview-duration" class="text-slate-200">20-40 sec</strong>
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-dark-950/90 border border-white/10 font-mono">
+                                <span>Dead-Air:</span>
+                                <strong id="preview-deadair" class="text-emerald-400">Active</strong>
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-dark-950/90 border border-white/10 font-mono">
+                                <strong id="preview-engine" class="text-rose-300">Local Smart AI</strong>
+                            </span>
+                        </div>
 
-            <!-- Option B: YouTube URL Input Zone (Blurred with Coming Soon Overlay) -->
-            <div id="youtube-input-zone" class="hidden relative overflow-hidden w-full max-w-xl bg-dark-800/90 border border-dark-600 rounded-3xl p-8 sm:p-10 shadow-2xl transition-all">
-                <!-- Blurred underlying content -->
-                <div class="blur-[5px] opacity-40 pointer-events-none select-none">
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="w-11 h-11 rounded-2xl bg-red-600/20 border border-red-500/30 flex items-center justify-center text-red-500 shadow-lg shadow-red-500/10">
-                            <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
-                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        <button id="btn-generate" type="button" class="cursor-pointer px-7 py-3.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500" disabled>
+                            <span>Generate Viral Clips</span>
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                             </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-sm sm:text-base font-bold text-gray-100">Paste YouTube Video or Shorts Link</h3>
-                            <p class="text-xs text-gray-400">ViralClipper will download the audio/video in HD and find the viral clips</p>
-                        </div>
-                    </div>
-
-                    <div class="relative mb-3">
-                        <input type="text" id="input-youtube-url" disabled placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..." class="w-full bg-dark-900 border border-dark-600 rounded-2xl px-4 py-3.5 text-xs sm:text-sm text-gray-100 placeholder-gray-500 pr-20">
-                        <button type="button" id="btn-paste-yt" disabled class="absolute right-2.5 top-2.5 px-3 py-1 bg-dark-700 rounded-xl text-xs font-semibold text-gray-300 flex items-center gap-1">
-                            📋 Paste
                         </button>
                     </div>
+                </div>
+
+                <!-- Right Bento Column (5 Cols): Studio Controls & Pipeline Architecture -->
+                <div class="lg:col-span-5 flex flex-col gap-6">
                     
-                    <div class="flex items-center gap-2 text-[11px] text-gray-400 px-1">
-                        <span>💡 Supported: Standard YouTube videos, Podcasts, Interviews & YouTube Shorts</span>
+                    <!-- Bento Card 1: Quick Studio Parameters -->
+                    <div class="bento-card rounded-3xl p-5 sm:p-6 shadow-xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <span class="text-[11px] font-mono uppercase tracking-wider text-indigo-400 font-semibold">Step 02 • Parameters</span>
+                                <h3 class="text-base font-bold text-white">Studio Clip Controls</h3>
+                            </div>
+                            <button type="button" onclick="document.getElementById('btn-open-settings').click()" class="cursor-pointer text-xs font-semibold text-rose-400 hover:text-rose-300 inline-flex items-center gap-1 transition-colors">
+                                <span>API Keys</span>
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="space-y-3.5 text-xs">
+                            <!-- Inline Duration Selector -->
+                            <div class="p-3.5 rounded-2xl bg-dark-950/80 border border-white/10">
+                                <label for="quick-select-duration" class="font-semibold text-slate-200 flex items-center justify-between mb-2">
+                                    <span class="flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                        <span>Target Clip Length</span>
+                                    </span>
+                                    <span class="text-[10px] font-mono text-slate-400">SHORTS / REELS / TIKTOK</span>
+                                </label>
+                                <select id="quick-select-duration" class="cursor-pointer w-full bg-dark-900 border border-white/10 hover:border-rose-500/40 rounded-xl px-3 py-2 text-xs text-white font-medium focus:outline-none focus:border-rose-500 transition-colors">
+                                    <option value="20-40" selected>20 – 40 seconds (Full Hook &amp; Payoff • Recommended)</option>
+                                    <option value="15-30">15 – 30 seconds (Fast Punchy Highlight)</option>
+                                    <option value="30-60">30 – 60 seconds (Deep Story Segment)</option>
+                                </select>
+                            </div>
+
+                            <!-- Inline Dead-Air Toggle -->
+                            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-dark-950/80 border border-white/10">
+                                <div class="flex items-start gap-2.5 pr-2">
+                                    <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <circle cx="6" cy="6" r="3"></circle>
+                                        <circle cx="6" cy="18" r="3"></circle>
+                                        <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+                                        <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+                                        <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+                                    </svg>
+                                    <div>
+                                        <p class="font-semibold text-slate-200">Auto-Excise Dead Air</p>
+                                        <p class="text-[11px] text-slate-400">FFmpeg cuts silent pauses (&gt;0.8s) inside clips</p>
+                                    </div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer shrink-0" aria-label="Toggle dead air removal">
+                                    <input type="checkbox" id="quick-check-dead-air" class="sr-only peer" checked>
+                                    <div class="w-10 h-5 bg-dark-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-600"></div>
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Coming Soon Overlay -->
-                <div class="absolute inset-0 flex flex-col items-center justify-center bg-dark-900/40 backdrop-blur-[2px] p-6 text-center z-10">
-                    <span class="px-3.5 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-extrabold uppercase tracking-widest rounded-full mb-2.5 shadow-lg">
-                        🚧 Coming Soon
-                    </span>
-                    <h4 class="text-base sm:text-lg font-bold text-white mb-1">Direct YouTube Link Import</h4>
-                    <p class="text-xs text-gray-300 max-w-xs">
-                        Cloud YouTube link importing is being upgraded. Please use <strong>Upload File</strong> (up to 2GB) for now!
-                    </p>
+                    <!-- Bento Card 2: 3-Stage AI Pipeline Architecture -->
+                    <div class="bento-card rounded-3xl p-5 sm:p-6 flex-1 flex flex-col justify-between shadow-xl">
+                        <div>
+                            <span class="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-semibold">Architecture • Zero Re-Encode</span>
+                            <h3 class="text-base font-bold text-white mb-3.5">3-Stage Viral Extraction Pipeline</h3>
+
+                            <div class="space-y-2.5 text-xs">
+                                <div class="flex items-center gap-3 p-2.5 rounded-xl bg-dark-950/60 border border-white/5">
+                                    <span class="w-7 h-7 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-400 font-mono font-bold text-[11px] flex items-center justify-center shrink-0">01</span>
+                                    <div class="min-w-0">
+                                        <p class="font-semibold text-slate-200 truncate">Whisper-Large-V3 Transcription</p>
+                                        <p class="text-[11px] text-slate-400 truncate">Groq LPU Cloud (3s) or Local faster-whisper</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-2.5 rounded-xl bg-dark-950/60 border border-white/5">
+                                    <span class="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 font-mono font-bold text-[11px] flex items-center justify-center shrink-0">02</span>
+                                    <div class="min-w-0">
+                                        <p class="font-semibold text-slate-200 truncate">Gemini 2.0 Hook &amp; Retention Scoring</p>
+                                        <p class="text-[11px] text-slate-400 truncate">Ranks emotional peaks, hooks &amp; complete lessons</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-2.5 rounded-xl bg-dark-950/60 border border-white/5">
+                                    <span class="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono font-bold text-[11px] flex items-center justify-center shrink-0">03</span>
+                                    <div class="min-w-0">
+                                        <p class="font-semibold text-slate-200 truncate">FFmpeg Keyframe-Locked Stream Cut</p>
+                                        <p class="text-[11px] text-slate-400 truncate">0.6s per clip • 0.000s audio sync • Ready for TikTok</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-
-            <input type="file" id="file-input" class="hidden" accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm,.mp4,.mov,.avi,.mkv,.webm">
-
-            <!-- Upload progress bar -->
-            <div id="upload-progress" class="hidden w-full max-w-xl mt-4">
-                <div class="bg-dark-700 rounded-full h-2.5 overflow-hidden">
-                    <div id="upload-progress-bar" class="bg-primary h-full rounded-full transition-all duration-200 shimmer" style="width: 0%"></div>
-                </div>
-                <p id="upload-progress-text" class="text-xs text-gray-400 mt-2 text-center">Uploading video...</p>
-            </div>
-
-            <!-- Parameters preview badge -->
-            <div class="flex flex-wrap items-center justify-center gap-3 mt-4 text-xs text-gray-400">
-                <span class="flex items-center gap-1.5 px-2.5 py-1 bg-dark-800 rounded-lg border border-dark-600">
-                    ⏱️ Target: <strong id="preview-duration" class="text-gray-200">20-40 sec</strong>
-                </span>
-                <span class="flex items-center gap-1.5 px-2.5 py-1 bg-dark-800 rounded-lg border border-dark-600">
-                    ✂️ Dead-air removal: <strong id="preview-deadair" class="text-emerald-400">Active</strong>
-                </span>
-                <span class="flex items-center gap-1.5 px-2.5 py-1 bg-dark-800 rounded-lg border border-dark-600">
-                    🤖 Engine: <strong id="preview-engine" class="text-primary-light">Gemini / Local</strong>
-                </span>
-            </div>
-
-            <!-- Generate button -->
-            <button id="btn-generate" class="mt-6 px-10 py-3.5 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-indigo-600 text-white font-semibold rounded-2xl transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-xl shadow-primary/25 text-base flex items-center gap-2" disabled>
-                <span>Generate Viral Clips</span>
-                <span>⚡</span>
-            </button>
         </section>
 
         <!-- ═══ State 2: Processing ═══ -->
-        <section id="state-processing" class="hidden flex flex-col items-center justify-center min-h-[50vh]">
-            <!-- Progress circle -->
-            <div class="relative w-44 h-44 mb-8">
-                <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120">
-                    <circle cx="60" cy="60" r="54" fill="none" stroke="#1e1e28" stroke-width="8"/>
-                    <circle id="progress-circle" cx="60" cy="60" r="54" fill="none" stroke="#8B5CF6" stroke-width="8" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="339.292" class="transition-all duration-500"/>
-                </svg>
-                <div class="absolute inset-0 flex flex-col items-center justify-center">
-                    <span id="progress-percent" class="text-3xl font-extrabold text-primary">0%</span>
-                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">processing</span>
+        <section id="state-processing" class="hidden flex flex-col items-center justify-center min-h-[55vh] fade-in">
+            <div class="bento-card rounded-3xl p-8 sm:p-12 max-w-xl w-full flex flex-col items-center text-center shadow-2xl">
+                <!-- Progress circle -->
+                <div class="relative w-44 h-44 mb-7">
+                    <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                        <circle cx="60" cy="60" r="54" fill="none" stroke="#16162a" stroke-width="8"/>
+                        <circle id="progress-circle" cx="60" cy="60" r="54" fill="none" stroke="#E11D48" stroke-width="8" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="339.292" class="transition-all duration-500"/>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span id="progress-percent" class="text-3xl font-extrabold font-mono text-white">0%</span>
+                        <span class="text-[10px] text-rose-400 font-mono font-bold uppercase tracking-widest mt-1">Processing</span>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Step info -->
-            <div class="text-center mb-6 max-w-md">
-                <p id="processing-step" class="text-xl font-bold mb-2 flex items-center justify-center gap-2">
-                    <span id="step-icon">🎙️</span> <span id="step-text">Starting pipeline...</span>
-                </p>
-                <p id="processing-message" class="text-sm text-gray-400 italic transition-opacity duration-300">
-                    Analyzing your content for viral gold...
-                </p>
-            </div>
+                <!-- Step info -->
+                <div class="mb-7 max-w-md">
+                    <p id="processing-step" class="text-lg sm:text-xl font-bold text-white mb-2 flex items-center justify-center gap-2.5">
+                        <span id="step-icon" class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400">
+                            <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+                            </svg>
+                        </span>
+                        <span id="step-text">Starting pipeline...</span>
+                    </p>
+                    <p id="processing-message" class="text-xs sm:text-sm text-slate-400 transition-opacity duration-300">
+                        Analyzing your content for viral gold...
+                    </p>
+                </div>
 
-            <!-- Pipeline stage breadcrumbs -->
-            <div class="flex items-center gap-3 text-xs bg-dark-800 px-4 py-2.5 rounded-xl border border-dark-600">
-                <div id="step-1" class="flex items-center gap-1.5 text-gray-500 font-medium">
-                    <div class="w-2 h-2 rounded-full bg-gray-600"></div>
-                    1. Transcribe (Whisper)
-                </div>
-                <div class="text-gray-600">→</div>
-                <div id="step-2" class="flex items-center gap-1.5 text-gray-500 font-medium">
-                    <div class="w-2 h-2 rounded-full bg-gray-600"></div>
-                    2. AI Viral Analysis
-                </div>
-                <div class="text-gray-600">→</div>
-                <div id="step-3" class="flex items-center gap-1.5 text-gray-500 font-medium">
-                    <div class="w-2 h-2 rounded-full bg-gray-600"></div>
-                    3. FFmpeg Dead-air Cut
+                <!-- Pipeline stage breadcrumbs -->
+                <div class="flex flex-wrap items-center justify-center gap-2 text-xs bg-dark-950/90 p-2.5 rounded-2xl border border-white/10 w-full">
+                    <div id="step-1" class="flex-1 min-w-[130px] flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-transparent text-slate-500 font-semibold transition-colors">
+                        <div class="step-dot w-2 h-2 rounded-full bg-slate-600"></div>
+                        <span>1. Transcribe</span>
+                    </div>
+                    <div id="step-2" class="flex-1 min-w-[130px] flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-transparent text-slate-500 font-semibold transition-colors">
+                        <div class="step-dot w-2 h-2 rounded-full bg-slate-600"></div>
+                        <span>2. Viral AI Rank</span>
+                    </div>
+                    <div id="step-3" class="flex-1 min-w-[130px] flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-transparent text-slate-500 font-semibold transition-colors">
+                        <div class="step-dot w-2 h-2 rounded-full bg-slate-600"></div>
+                        <span>3. FFmpeg Cut</span>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- ═══ State 3: Results ═══ -->
         <section id="state-results" class="hidden fade-in w-full">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-dark-700">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-white/10">
                 <div>
-                    <h2 class="text-2xl sm:text-3xl font-extrabold flex items-center gap-2">
-                        <span>🔥</span> Ranked Viral Clips Ready!
-                    </h2>
-                    <p id="results-summary" class="text-xs sm:text-sm text-gray-400 mt-1"></p>
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-lg shadow-rose-500/10">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                                Ranked Viral Clips Ready
+                            </h2>
+                            <p id="results-summary" class="text-xs sm:text-sm text-slate-400 mt-0.5 font-mono"></p>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <div class="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
                     <!-- Copy Full Transcript Button -->
-                    <button id="btn-copy-transcript" class="px-4 py-2.5 bg-dark-700 hover:bg-dark-600 text-gray-200 font-medium text-xs rounded-xl transition-all border border-dark-500 hover:border-primary flex items-center gap-1.5 shadow-sm">
-                        <span>📝</span>
+                    <button id="btn-copy-transcript" type="button" class="cursor-pointer px-4 py-2.5 bg-dark-800 hover:bg-dark-700 text-slate-200 font-semibold text-xs rounded-xl transition-colors duration-200 border border-white/10 hover:border-rose-500/50 flex items-center gap-2 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">
+                        <svg class="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                        </svg>
                         <span id="btn-copy-transcript-text">Copy Full Transcript</span>
                     </button>
                     <!-- Process Another Video -->
-                    <button id="btn-new-video" class="px-4 py-2.5 bg-dark-700 hover:bg-dark-600 text-gray-200 font-medium text-xs rounded-xl transition-all border border-dark-500 hover:border-primary flex items-center gap-2">
-                        <span>←</span> Process Another Video
+                    <button id="btn-new-video" type="button" class="cursor-pointer px-4 py-2.5 bg-dark-800 hover:bg-dark-700 text-slate-200 font-semibold text-xs rounded-xl transition-colors duration-200 border border-white/10 hover:border-white/25 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">
+                        <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>New Video</span>
                     </button>
                 </div>
             </div>
 
             <!-- Batch Selection & Action Bar -->
-            <div class="flex flex-wrap items-center justify-between gap-3 bg-dark-800/90 border border-dark-600 rounded-2xl p-3.5 mb-6 shadow-lg">
+            <div class="flex flex-wrap items-center justify-between gap-3 bento-card rounded-2xl p-3.5 sm:px-5 mb-6 shadow-lg">
                 <div class="flex items-center gap-3">
-                    <label class="flex items-center gap-2 cursor-pointer select-none text-xs text-gray-300 font-medium hover:text-white">
-                        <input type="checkbox" id="check-select-all" class="w-4 h-4 rounded text-primary bg-dark-900 border-dark-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-purple-600">
+                    <label class="flex items-center gap-2.5 cursor-pointer select-none text-xs text-slate-200 font-semibold hover:text-white">
+                        <input type="checkbox" id="check-select-all" class="w-4 h-4 rounded text-rose-600 bg-dark-950 border-dark-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-rose-600">
                         <span>Select All Clips</span>
                     </label>
-                    <span class="text-xs text-gray-500">•</span>
-                    <span id="selected-clips-count" class="text-xs font-semibold text-primary-light">0 selected</span>
+                    <span class="text-xs text-slate-600">•</span>
+                    <span id="selected-clips-count" class="text-xs font-mono font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/25 px-2.5 py-0.5 rounded-lg">0 selected</span>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button id="btn-download-selected" disabled class="px-4 py-2 bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-xs transition-all shadow-md flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button id="btn-download-selected" type="button" disabled class="cursor-pointer px-4 py-2 bg-rose-600 hover:bg-rose-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-xs transition-colors duration-200 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>
-                        <span>Download Selected</span>
+                        <span>Download Selected (0)</span>
                     </button>
                 </div>
             </div>
@@ -288,18 +476,22 @@
         </section>
 
         <!-- ═══ State 4: Error ═══ -->
-        <section id="state-error" class="hidden flex flex-col items-center justify-center min-h-[50vh]">
-            <div class="text-center max-w-md">
-                <div class="w-16 h-16 rounded-3xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4 text-3xl">
-                    ⚠️
+        <section id="state-error" class="hidden flex flex-col items-center justify-center min-h-[50vh] fade-in">
+            <div class="text-center max-w-md bento-card p-8 rounded-3xl shadow-2xl">
+                <div class="w-14 h-14 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mx-auto mb-4 text-rose-400">
+                    <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
                 </div>
-                <h2 class="text-xl font-bold text-red-400 mb-2">Processing Error</h2>
-                <p id="error-message" class="text-xs sm:text-sm text-gray-400 mb-6 bg-dark-800 p-4 rounded-xl border border-dark-600"></p>
+                <h2 class="text-xl font-bold text-white mb-2">Processing Error</h2>
+                <p id="error-message" class="text-xs sm:text-sm font-mono text-rose-300/90 mb-6 bg-dark-950/90 p-4 rounded-xl border border-rose-500/20 break-words"></p>
                 <div class="flex gap-3 justify-center">
-                    <button id="btn-retry" class="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white text-xs font-semibold rounded-xl transition-all shadow-lg shadow-primary/25">
+                    <button id="btn-retry" type="button" class="cursor-pointer px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl transition-colors duration-200 shadow-lg shadow-rose-600/25">
                         Retry Processing
                     </button>
-                    <button id="btn-error-reset" class="px-5 py-2.5 bg-dark-700 hover:bg-dark-600 text-gray-300 text-xs font-medium rounded-xl transition-all border border-dark-500">
+                    <button id="btn-error-reset" type="button" class="cursor-pointer px-5 py-2.5 bg-dark-700 hover:bg-dark-600 text-slate-200 text-xs font-semibold rounded-xl transition-colors duration-200 border border-white/10">
                         Upload New Video
                     </button>
                 </div>
@@ -309,74 +501,98 @@
     </main>
 
     <!-- Settings Modal -->
-    <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden p-4">
-        <div class="bg-dark-800 border border-dark-600 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-gray-100 flex items-center gap-2">
-                    <span>⚙️</span> Processing Settings
+    <div id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden p-4">
+        <div class="bg-dark-800 border border-white/15 rounded-3xl w-full max-w-md p-6 shadow-2xl relative fade-in">
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-white/10">
+                <h3 id="settings-modal-title" class="text-base sm:text-lg font-bold text-white flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </span>
+                    <span>Studio &amp; Cloud API Settings</span>
                 </h3>
-                <button id="btn-close-settings" class="text-gray-400 hover:text-white text-xl leading-none">&times;</button>
+                <button id="btn-close-settings" type="button" aria-label="Close settings" class="cursor-pointer w-8 h-8 rounded-lg bg-dark-700/70 hover:bg-dark-600 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
 
             <div class="space-y-4 text-xs">
                 <!-- Groq Cloud Whisper API Key -->
                 <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <label for="input-groq-key" class="font-medium text-emerald-400">Groq Cloud Whisper-Large-V3 Key (100% Free — 20x Faster)</label>
-                        <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline font-semibold">
-                            Get free key ↗
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label for="input-groq-key" class="font-semibold text-emerald-400">Groq Cloud Whisper-V3 Key (Free — 20x Faster)</label>
+                        <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline font-semibold inline-flex items-center gap-1">
+                            <span>Get free key</span>
+                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="7" y1="17" x2="17" y2="7"></line>
+                                <polyline points="7 7 17 7 17 17"></polyline>
+                            </svg>
                         </a>
                     </div>
                     <div class="relative">
-                        <input type="password" id="input-groq-key" placeholder="gsk_... (Transcribes in 3s on Groq Cloud LPUs)" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-emerald-400">
+                        <input type="password" id="input-groq-key" placeholder="gsk_... (Transcribes in 3s on Groq Cloud LPUs)" class="w-full bg-dark-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-400">
                     </div>
-                    <p class="text-[11px] text-gray-400 mt-1">
-                        Uses OpenAI's flagship <strong>whisper-large-v3-turbo</strong> in the cloud (0% PC hardware used).
+                    <p class="text-[11px] text-slate-400 mt-1">
+                        Uses OpenAI's flagship <strong class="text-slate-300">whisper-large-v3-turbo</strong> in the cloud (0% local CPU/GPU load).
                     </p>
                 </div>
 
                 <!-- Gemini API Key -->
                 <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <label for="input-api-key" class="font-medium text-gray-300">Google Gemini API Key (Free)</label>
-                        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="text-primary-light hover:underline">
-                            Get free key ↗
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label for="input-api-key" class="font-semibold text-slate-200">Google Gemini API Key (Free)</label>
+                        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="text-rose-400 hover:underline font-semibold inline-flex items-center gap-1">
+                            <span>Get free key</span>
+                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="7" y1="17" x2="17" y2="7"></line>
+                                <polyline points="7 7 17 7 17 17"></polyline>
+                            </svg>
                         </a>
                     </div>
                     <div class="relative">
-                        <input type="password" id="input-api-key" placeholder="AIzaSy... (Leave empty to use local AI mode)" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-primary">
-                        <button type="button" id="btn-toggle-key-vis" class="absolute right-2.5 top-2 text-gray-400 hover:text-gray-200">👁️</button>
+                        <input type="password" id="input-api-key" placeholder="AIzaSy... (Leave empty for local smart AI)" class="w-full bg-dark-950 border border-white/10 rounded-xl px-3.5 py-2.5 pr-10 text-xs font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-rose-500">
+                        <button type="button" id="btn-toggle-key-vis" aria-label="Toggle API key visibility" class="cursor-pointer absolute right-2.5 top-2 p-1 text-slate-400 hover:text-slate-200 rounded-lg">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
                     </div>
-                    <p class="text-[11px] text-gray-500 mt-1">
-                        Optional: If empty, ViralClipper uses built-in smart heuristic analysis locally.
+                    <p class="text-[11px] text-slate-500 mt-1">
+                        Optional: If empty, ViralClipper uses built-in local smart cadence analysis.
                     </p>
                 </div>
 
                 <!-- Target Clip Duration -->
                 <div>
-                    <label for="select-duration" class="font-medium text-gray-300 block mb-1">Target Clip Duration</label>
-                    <select id="select-duration" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-primary">
-                        <option value="20-40" selected>20 – 40 seconds (Full Lesson & Context - Recommended)</option>
+                    <label for="select-duration" class="font-semibold text-slate-200 block mb-1.5">Target Clip Duration</label>
+                    <select id="select-duration" class="cursor-pointer w-full bg-dark-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-rose-500">
+                        <option value="20-40" selected>20 – 40 seconds (Full Lesson &amp; Context - Recommended)</option>
                         <option value="15-30">15 – 30 seconds (Short Highlight)</option>
                         <option value="30-60">30 – 60 seconds (Extended Story)</option>
                     </select>
                 </div>
 
                 <!-- Dead Air Removal Toggle -->
-                <div class="flex items-center justify-between p-3 bg-dark-900 rounded-xl border border-dark-700">
+                <div class="flex items-center justify-between p-3.5 bg-dark-950 rounded-2xl border border-white/10">
                     <div>
-                        <p class="font-medium text-gray-200">Remove Dead Air & Pauses</p>
-                        <p class="text-[11px] text-gray-500">FFmpeg excises silent gaps (>0.8s) inside clips</p>
+                        <p class="font-semibold text-slate-200">Remove Dead Air &amp; Pauses</p>
+                        <p class="text-[11px] text-slate-400">FFmpeg excises silent gaps (&gt;0.8s) inside clips</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="check-dead-air" class="sr-only peer" checked>
-                        <div class="w-9 h-5 bg-dark-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                        <div class="w-10 h-5 bg-dark-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-600"></div>
                     </label>
                 </div>
             </div>
 
             <div class="mt-6 flex justify-end gap-2">
-                <button id="btn-save-settings" class="px-5 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-semibold transition-all">
+                <button id="btn-save-settings" type="button" class="cursor-pointer px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition-colors duration-200 shadow-lg shadow-rose-600/25">
                     Save Preferences
                 </button>
             </div>
@@ -384,20 +600,37 @@
     </div>
 
     <!-- History Modal -->
-    <div id="history-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm hidden p-4">
-        <div class="bg-dark-800 border border-dark-600 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl relative">
-            <div class="flex items-center justify-between p-5 border-b border-dark-600">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-100 flex items-center gap-2">
-                        <span>🕒</span> My Caption & Clip History
-                    </h3>
-                    <p class="text-[11px] text-gray-400 mt-0.5">Saved privately on this browser • Copy captions, quotes & timestamps anytime</p>
-                </div>
+    <div id="history-modal" role="dialog" aria-modal="true" aria-labelledby="history-modal-title" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden p-4">
+        <div class="bg-dark-800 border border-white/15 rounded-3xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl relative fade-in">
+            <div class="flex items-center justify-between p-5 border-b border-white/10">
                 <div class="flex items-center gap-3">
-                    <button id="btn-clear-history" class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-xs text-red-400 font-medium transition-all">
-                        🗑️ Clear All
+                    <span class="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 id="history-modal-title" class="text-base sm:text-lg font-bold text-white">
+                            Clip &amp; Transcript History
+                        </h3>
+                        <p class="text-[11px] text-slate-400">Saved privately on this browser • Copy clip transcripts &amp; timestamps anytime</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <button id="btn-clear-history" type="button" class="cursor-pointer px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-xl text-xs text-rose-400 font-semibold transition-colors duration-200 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        <span>Clear All</span>
                     </button>
-                    <button id="btn-close-history" class="text-gray-400 hover:text-white text-2xl leading-none px-1">&times;</button>
+                    <button id="btn-close-history" type="button" aria-label="Close history" class="cursor-pointer w-8 h-8 rounded-lg bg-dark-700/70 hover:bg-dark-600 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
@@ -407,11 +640,91 @@
         </div>
     </div>
 
+    <!-- Viral Captions Studio Modal -->
+    <div id="captions-modal" role="dialog" aria-modal="true" aria-labelledby="captions-modal-title" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden p-4">
+        <div class="bg-dark-800 border border-white/15 rounded-3xl w-full max-w-2xl max-h-[88vh] flex flex-col shadow-2xl relative fade-in">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-5 border-b border-white/10">
+                <div class="min-w-0 pr-3">
+                    <div class="flex items-center gap-2 mb-0.5">
+                        <span class="px-2 py-0.5 bg-rose-500/15 border border-rose-500/30 text-rose-300 font-mono text-[10px] font-bold uppercase tracking-wider rounded-md">Master Prompt Studio</span>
+                    </div>
+                    <h3 id="captions-modal-title" class="text-base sm:text-lg font-bold text-white truncate">
+                        Viral In-Video Captions (5–10 Options)
+                    </h3>
+                    <p id="captions-modal-subtitle" class="text-[11px] font-mono text-slate-400 truncate mt-0.5"></p>
+                </div>
+                <button id="btn-close-captions" type="button" aria-label="Close viral captions modal" class="cursor-pointer w-8 h-8 rounded-lg bg-dark-700/70 hover:bg-dark-600 text-slate-400 hover:text-white flex items-center justify-center shrink-0 transition-colors">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-5 overflow-y-auto space-y-4 flex-1 text-xs">
+                <!-- Best Pick Banner -->
+                <div class="p-4 rounded-2xl bg-gradient-to-br from-rose-500/15 via-dark-950/90 to-indigo-500/10 border border-rose-500/35 shadow-lg">
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-rose-400">★ Best Pick In-Video Caption</span>
+                        <button id="btn-copy-best-pick" type="button" class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[11px] font-semibold transition-colors">
+                            Copy Best Pick
+                        </button>
+                    </div>
+                    <p id="caption-best-pick-text" class="text-sm sm:text-base font-extrabold text-white leading-snug">
+                        Generating viral captions...
+                    </p>
+                </div>
+
+                <!-- Follow My Feedback Quick Pills & Custom Input -->
+                <div class="p-3.5 rounded-2xl bg-dark-950/80 border border-white/10 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-mono font-semibold uppercase tracking-wider text-indigo-400">Follow My Feedback</span>
+                        <span id="captions-loading-indicator" class="hidden text-[11px] font-mono text-rose-400 animate-pulse">Generating fresh options...</span>
+                    </div>
+
+                    <div class="flex flex-wrap gap-1.5" id="caption-feedback-pills">
+                        <button type="button" data-feedback="More" class="btn-caption-feedback cursor-pointer px-2.5 py-1.5 bg-dark-800 hover:bg-dark-700 border border-white/10 hover:border-rose-500/40 rounded-lg text-[11px] font-semibold text-slate-200 transition-colors">🔄 More</button>
+                        <button type="button" data-feedback="First person" class="btn-caption-feedback cursor-pointer px-2.5 py-1.5 bg-dark-800 hover:bg-dark-700 border border-white/10 hover:border-rose-500/40 rounded-lg text-[11px] font-semibold text-slate-200 transition-colors">🗣️ First Person</button>
+                        <button type="button" data-feedback="POV" class="btn-caption-feedback cursor-pointer px-2.5 py-1.5 bg-dark-800 hover:bg-dark-700 border border-white/10 hover:border-rose-500/40 rounded-lg text-[11px] font-semibold text-slate-200 transition-colors">👀 POV</button>
+                        <button type="button" data-feedback="No POV" class="btn-caption-feedback cursor-pointer px-2.5 py-1.5 bg-dark-800 hover:bg-dark-700 border border-white/10 hover:border-rose-500/40 rounded-lg text-[11px] font-semibold text-slate-200 transition-colors">🚫 No POV</button>
+                        <button type="button" data-feedback="Shorter" class="btn-caption-feedback cursor-pointer px-2.5 py-1.5 bg-dark-800 hover:bg-dark-700 border border-white/10 hover:border-rose-500/40 rounded-lg text-[11px] font-semibold text-slate-200 transition-colors">⚡ Shorter</button>
+                        <button type="button" data-feedback="Longer" class="btn-caption-feedback cursor-pointer px-2.5 py-1.5 bg-dark-800 hover:bg-dark-700 border border-white/10 hover:border-rose-500/40 rounded-lg text-[11px] font-semibold text-slate-200 transition-colors">📏 Longer</button>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="input-caption-feedback" placeholder="Add name (e.g. Alex Hormozi), 'Something like...', or custom tweak..." class="flex-1 bg-dark-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 transition-colors">
+                        <button id="btn-submit-caption-feedback" type="button" class="cursor-pointer px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-xl text-xs font-semibold whitespace-nowrap transition-colors">
+                            Refine Captions
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 5-10 Numbered Caption Options List -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">Scroll-Stopping Caption Options</span>
+                        <button id="btn-copy-all-captions" type="button" class="cursor-pointer px-2.5 py-1 bg-dark-700 hover:bg-dark-600 border border-white/10 rounded-lg text-[11px] font-semibold text-slate-200 transition-colors">
+                            Copy All
+                        </button>
+                    </div>
+                    <div id="captions-options-list" class="space-y-2">
+                        <!-- Injected dynamically via app.js -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
-    <footer class="border-t border-dark-800 py-4 text-center text-xs text-gray-500">
-        Made with ⚡ by ViralClipper • 100% Free • Powered by Whisper AI & Google Gemini
+    <footer class="border-t border-white/5 py-5 text-center text-xs text-slate-500">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span class="font-semibold text-slate-400">ViralClipper Pro Studio</span>
+            <span>100% Free &amp; Open Source • Whisper AI + FFmpeg + Google Gemini</span>
+        </div>
     </footer>
 
-    <script src="js/app.js"></script>
+    <script src="js/app.js?v=2.6"></script>
 </body>
 </html>

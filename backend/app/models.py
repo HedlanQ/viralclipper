@@ -21,6 +21,9 @@ class ClipInfo(BaseModel):
     virality_score: int  # 1-100
     title: str
     description: str
+    transcript: str = ""
+    viral_captions: list[str] = []
+    best_caption: str = ""
     start_time: float
     end_time: float
     duration: float = 0.0
@@ -54,3 +57,20 @@ class YouTubeRequest(BaseModel):
     """Request payload for processing a YouTube video URL."""
 
     url: str
+
+
+class CaptionGenerateRequest(BaseModel):
+    """Request payload to generate or refine viral captions for a clip."""
+
+    transcript: str
+    feedback: Optional[str] = None
+    previous_captions: Optional[list[str]] = None
+    groq_api_key: Optional[str] = None
+    gemini_api_key: Optional[str] = None
+
+
+class CaptionGenerateResponse(BaseModel):
+    """Response payload with 5-10 viral captions and the Best Pick."""
+
+    captions: list[str]
+    best_pick: str

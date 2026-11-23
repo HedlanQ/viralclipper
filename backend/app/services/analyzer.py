@@ -72,6 +72,49 @@ DANGLING_ENDINGS = (
 )
 
 
+def extract_clip_transcript(
+    segments: list[dict],
+    start_time: float,
+    end_time: float,
+    words: Optional[list[dict]] = None,
+) -> str:
+    """
+    Extract the exact, untruncated spoken transcript within [start_time, end_time].
+    Prefers exact word-level timestamps when available so the transcript matches
+    the cut clip's audio down to the exact opening and closing word.
+    """
+    if words:
+        matched_words = []
+        for w in words:
+            w_start = float(w.get("start", 0.0))
+            w_end = float(w.get("end", w_start))
+            w_mid = (w_start + w_end) / 2.0
+            if start_time - 0.08 <= w_mid <= end_time + 0.08:
+                token = str(w.get("word", "")).strip()
+                if token:
+                    matched_words.append(token)
+        if matched_words:
+            text = " ".join(matched_words)
+            # Clean any space before punctuation marks produced by joining tokens
+            text = re.sub(r"\s+([.,!?;:])", r"\1", text)
+            return re.sub(r"\s+", " ", text).strip()
+
+    # Fallback: segment-level overlap matching
+    matched_segs = []
+    for seg in segments:
+        s_start = float(seg.get("start", 0.0))
+        s_end = float(seg.get("end", s_start))
+        seg_dur = max(0.05, s_end - s_start)
+        overlap = min(end_time, s_end) - max(start_time, s_start)
+        s_mid = (s_start + s_end) / 2.0
+        if (overlap / seg_dur) >= 0.35 or (start_time <= s_mid <= end_time):
+            seg_text = str(seg.get("text", "")).strip()
+            if seg_text:
+                matched_segs.append(seg_text)
+
+    return re.sub(r"\s+", " ", " ".join(matched_segs)).strip()
+
+
 def _format_segments(segments: list[dict]) -> str:
     """Format transcript segments for the prompt."""
     lines = []
@@ -310,6 +353,7 @@ def analyze_transcript_heuristic(
     silence_segments: list[dict],
     min_duration: int = 20,
     max_duration: int = 40,
+    words: Optional[list[dict]] = None,
 ) -> list[ClipInfo]:
     """
     Narrative & Lesson-Aware Analyzer (20-40s).
@@ -420,6 +464,51 @@ def analyze_transcript_heuristic(
         if best_candidate_for_i and best_candidate_for_i["raw_score"] >= 62.0:
             candidates.append(best_candidate_for_i)
 
+    # Relaxed fallback pass: if strict punctuation/capitalization yielded 0 clips
+    # (e.g., when Whisper emits unpunctuated segments or on short ~60s videos),
+    # allow pause-based segment boundaries so valid videos always produce clips.
+    if not candidates and n_segs > 0:
+        logger.info("Strict pass found 0 candidates; running relaxed boundary pass...")
+        for i in range(n_segs):
+            seg_start = _compute_safe_start_time(segments, i)
+            accumulated_texts = []
+            best_fallback_for_i = None
+            for j in range(i, n_segs):
+                accumulated_texts.append(segments[j]["text"].strip())
+                raw_end = segments[j]["end"]
+                dur = raw_end - seg_start
+                if dur < max(10, min_duration - 5):
+                    continue
+                if dur > max_duration + 6.0:
+                    break
+
+                full_text = " ".join(accumulated_texts).strip()
+                word_list = full_text.split()
+                if len(word_list) < 15:
+                    continue
+
+                raw_score = 52.0
+                if j + 1 < n_segs and (segments[j + 1]["start"] - segments[j]["end"]) >= 0.25:
+                    raw_score += 8.0
+                if segments[j]["text"].strip().endswith((".", "!", "?")):
+                    raw_score += 6.0
+                dist_from_ideal = abs(dur - ideal_duration)
+                raw_score += max(0.0, 10.0 - (dist_from_ideal * 0.45))
+
+                if best_fallback_for_i is None or raw_score > best_fallback_for_i["raw_score"]:
+                    safe_end = _compute_safe_end_time(segments, j, video_duration)
+                    best_fallback_for_i = {
+                        "start_time": seg_start,
+                        "end_time": safe_end,
+                        "duration": round(safe_end - seg_start, 2),
+                        "raw_score": raw_score,
+                        "title": _generate_lesson_title(full_text),
+                        "text": full_text,
+                        "reason": "Self-contained spoken segment with natural pacing.",
+                    }
+            if best_fallback_for_i:
+                candidates.append(best_fallback_for_i)
+
     candidates.sort(key=lambda c: c["raw_score"], reverse=True)
     selected = []
 
@@ -443,14 +532,16 @@ def analyze_transcript_heuristic(
         for rank, item in enumerate(selected, 1):
             diff = max_raw - item["raw_score"]
             calibrated = int(min(96, max(74, round(95 - (rank - 1) * 2.5 - (diff * 0.5)))))
-            text = item["text"]
-            quote_preview = f"\"{text}\"" if len(text) <= 260 else f"\"{text[:120]} ... {text[-120:]}\""
+            exact_transcript = extract_clip_transcript(
+                segments, item["start_time"], item["end_time"], words
+            ) or item["text"]
             clips.append(
                 ClipInfo(
                     rank=rank,
                     virality_score=calibrated,
                     title=item["title"],
-                    description=quote_preview,
+                    description=exact_transcript,
+                    transcript=exact_transcript,
                     start_time=item["start_time"],
                     end_time=item["end_time"],
                     duration=item["duration"],
@@ -470,6 +561,7 @@ def analyze_transcript(
     api_key: Optional[str] = None,
     min_duration: Optional[int] = None,
     max_duration: Optional[int] = None,
+    words: Optional[list[dict]] = None,
 ) -> list[ClipInfo]:
     """
     Analyze transcript segments using Gemini to find meaningful, viral lesson clips (20-40s).
@@ -482,7 +574,7 @@ def analyze_transcript(
     if not effective_key:
         logger.info("Using Narrative & Lesson-Aware Local AI Engine.")
         return analyze_transcript_heuristic(
-            segments, video_duration, silence_segments, min_dur, max_dur
+            segments, video_duration, silence_segments, min_dur, max_dur, words=words
         )
 
     genai.configure(api_key=effective_key)
@@ -552,11 +644,13 @@ Return a JSON array with this EXACT format:
                 start, end = _snap_clip_to_complete_sentences(
                     raw_start, raw_end, segments, video_duration, max_dur
                 )
+                exact_transcript = extract_clip_transcript(segments, start, end, words)
                 clip = ClipInfo(
                     rank=int(clip_data["rank"]),
                     virality_score=int(clip_data["virality_score"]),
                     title=clip_data["title"],
                     description=clip_data["description"],
+                    transcript=exact_transcript,
                     start_time=start,
                     end_time=end,
                     duration=round(end - start, 2),
@@ -579,5 +673,5 @@ Return a JSON array with this EXACT format:
         f"Gemini analysis unsuccessful ({last_error}). Falling back to Narrative & Lesson Engine."
     )
     return analyze_transcript_heuristic(
-        segments, video_duration, silence_segments, min_dur, max_dur
+        segments, video_duration, silence_segments, min_dur, max_dur, words=words
     )

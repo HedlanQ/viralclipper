@@ -3,20 +3,33 @@
 import asyncio
 import logging
 import os
+import re
 import time
 import uuid
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks
+from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings, ensure_directories, get_groq_api_key
-from app.models import JobStatus, ClipInfo, ProcessingResult, ProcessRequest, YouTubeRequest
+from app.models import (
+    JobStatus,
+    ClipInfo,
+    ProcessingResult,
+    ProcessRequest,
+    YouTubeRequest,
+    CaptionGenerateRequest,
+    CaptionGenerateResponse,
+)
 from app.services.transcription import transcribe_video
-from app.services.analyzer import analyze_transcript
+from app.services.analyzer import analyze_transcript, extract_clip_transcript
+from app.services.caption_generator import (
+    generate_viral_captions,
+    populate_clips_viral_captions,
+)
 from app.services.youtube_downloader import is_valid_youtube_url, download_youtube_video
 from app.services.video_processor import (
     get_video_duration,
@@ -122,7 +135,7 @@ async def process_video_pipeline(job_id: str):
 
         # Step 3: Transcribe
         whisper_desc = (
-            "Transcribing in 3s via Groq Cloud (Whisper-Large-V3-Turbo)..."
+            "Transcribing via Groq Cloud (Whisper-Large-V3 High Accuracy)..."
             if groq_key
             else "Transcribing audio with Whisper AI..."
         )
@@ -146,6 +159,7 @@ async def process_video_pipeline(job_id: str):
             api_key=api_key,
             min_duration=min_dur,
             max_duration=max_dur,
+            words=transcript.get("words"),
         )
         update_status(
             job_id, "analyzing", 80, f"Found {len(clips)} high-potential viral moments!"
@@ -179,6 +193,28 @@ async def process_video_pipeline(job_id: str):
             silence_segments=silence_segments,
             remove_dead_air=remove_dead_air,
             progress_callback=on_clip_progress,
+        )
+
+        # Re-sync each clip's exact spoken transcript to its final cut window
+        # (since keyframe-locked stream copy adjusts clip.start_time to the exact I-frame)
+        for clip in clips:
+            synced = extract_clip_transcript(
+                transcript["segments"],
+                clip.start_time,
+                clip.end_time,
+                words=transcript.get("words"),
+            )
+            if synced:
+                clip.transcript = synced
+                if not api_key:
+                    clip.description = synced
+
+        update_status(job_id, "cutting", 96, "Generating viral in-video captions...")
+        await asyncio.to_thread(
+            populate_clips_viral_captions,
+            clips,
+            groq_api_key=groq_key,
+            gemini_api_key=api_key,
         )
 
         # Free disk/RAM space by removing the large source upload once clips are cut
@@ -395,25 +431,108 @@ async def get_results(job_id: str):
     return job["result"]
 
 
-@app.get("/api/clips/{job_id}/{clip_filename}")
-async def serve_clip(job_id: str, clip_filename: str, download: bool = False):
-    """Serve a generated clip video file (works even if server reloaded since clips are on disk)."""
+@app.api_route("/api/clips/{job_id}/{clip_filename}", methods=["GET", "HEAD"])
+async def serve_clip(request: Request, job_id: str, clip_filename: str, download: bool = False):
+    """Serve a generated clip video file with HTTP Range (206 Partial Content) support for smooth seeking."""
     safe_job_id = os.path.basename(job_id)
     safe_filename = os.path.basename(clip_filename)
     clip_path = os.path.join(settings.OUTPUT_DIR, safe_job_id, safe_filename)
     if not os.path.exists(clip_path):
         raise HTTPException(status_code=404, detail="Clip file not found")
 
-    headers = {}
+    file_size = os.path.getsize(clip_path)
+    disposition = "attachment" if download else "inline"
+    headers = {
+        "Accept-Ranges": "bytes",
+        "Content-Disposition": f'{disposition}; filename="{safe_filename}"',
+    }
+
     if download:
-        headers["Content-Disposition"] = f'attachment; filename="{safe_filename}"'
-    else:
-        headers["Content-Disposition"] = f'inline; filename="{safe_filename}"'
+        return FileResponse(
+            clip_path,
+            media_type="video/mp4",
+            headers=headers,
+        )
+
+    range_header = request.headers.get("range")
+    if range_header:
+        match = re.match(r"bytes=(\d*)-(\d*)", range_header.strip())
+        if match:
+            start_str, end_str = match.groups()
+            if start_str and end_str:
+                start = int(start_str)
+                end = min(int(end_str), file_size - 1)
+            elif start_str:
+                start = int(start_str)
+                end = file_size - 1
+            elif end_str:
+                start = max(0, file_size - int(end_str))
+                end = file_size - 1
+            else:
+                start, end = 0, file_size - 1
+
+            if start >= file_size or start > end or start < 0:
+                return Response(
+                    status_code=416,
+                    headers={"Content-Range": f"bytes */{file_size}"},
+                )
+
+            chunk_length = end - start + 1
+            headers["Content-Range"] = f"bytes {start}-{end}/{file_size}"
+            headers["Content-Length"] = str(chunk_length)
+
+            if request.method.upper() == "HEAD":
+                return Response(status_code=206, media_type="video/mp4", headers=headers)
+
+            def iter_range():
+                with open(clip_path, "rb") as f:
+                    f.seek(start)
+                    remaining = chunk_length
+                    while remaining > 0:
+                        data = f.read(min(65536, remaining))
+                        if not data:
+                            break
+                        remaining -= len(data)
+                        yield data
+
+            return StreamingResponse(
+                iter_range(),
+                status_code=206,
+                media_type="video/mp4",
+                headers=headers,
+            )
+
+    headers["Content-Length"] = str(file_size)
+    if request.method.upper() == "HEAD":
+        return Response(status_code=200, media_type="video/mp4", headers=headers)
 
     return FileResponse(
         clip_path,
         media_type="video/mp4",
         headers=headers,
+    )
+
+
+@app.post("/api/captions/generate", response_model=CaptionGenerateResponse)
+async def api_generate_captions(req: CaptionGenerateRequest):
+    """Generate or refine 5-10 viral in-video captions + Best Pick for a clip transcript."""
+    if not req.transcript or not req.transcript.strip():
+        raise HTTPException(status_code=400, detail="Clip transcript is required.")
+
+    groq_key = req.groq_api_key or get_groq_api_key()
+    gemini_key = req.gemini_api_key or settings.GEMINI_API_KEY
+
+    result = await asyncio.to_thread(
+        generate_viral_captions,
+        req.transcript.strip(),
+        feedback=req.feedback,
+        previous_captions=req.previous_captions,
+        groq_api_key=groq_key,
+        gemini_api_key=gemini_key,
+    )
+    return CaptionGenerateResponse(
+        captions=result.get("captions", []),
+        best_pick=result.get("best_pick", ""),
     )
 
 

@@ -1,5 +1,5 @@
 /**
- * ViralClipper - Frontend Application
+ * ViralClipper - Frontend Application (UI/UX Pro Max Cinema Studio Edition)
  * AI-Powered Viral Clip Generator & Dead-Air Remover
  */
 
@@ -7,6 +7,24 @@
 const API_BASE = (window.location.origin.startsWith('http') && !window.location.origin.includes(':3000') && !window.location.origin.includes(':5500'))
     ? window.location.origin
     : 'http://localhost:8000';
+
+// ─── SVG Icon Templates (Lucide / Heroicons 24x24) ───────────────────────────
+
+const ICONS = {
+    bolt: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`,
+    spinner: `<svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>`,
+    mic: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>`,
+    cpu: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>`,
+    scissors: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg>`,
+    check: `<svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+    copy: `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`,
+    fileVideo: `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><polygon points="10 11 16 14 10 17 10 11"></polygon></svg>`,
+    fileText: `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`,
+    clock: `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+    inbox: `<svg class="w-8 h-8 text-slate-500 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>`,
+    checkCircle: `<svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
+    alertCircle: `<svg class="w-4 h-4 text-rose-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
+};
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -26,12 +44,12 @@ const settings = {
     removeDeadAir: localStorage.getItem('viralclipper_dead_air') !== 'false',
 };
 
-// Fun loading messages
+// Loading messages
 const loadingMessages = [
     "Analyzing your content for viral gold...",
-    "Teaching Whisper AI what makes content pop...",
+    "Transcribing spoken words with Whisper AI...",
     "Detecting dead air pauses & silent moments...",
-    "Finding the moments that'll stop users scrolling...",
+    "Finding the moments that stop users scrolling...",
     "Identifying emotional hooks & surprising takes...",
     "Excising dead air and splicing clips...",
     "Ranking outputs by viral potential...",
@@ -92,7 +110,7 @@ const errorMessage = document.getElementById('error-message');
 const btnRetry = document.getElementById('btn-retry');
 const btnErrorReset = document.getElementById('btn-error-reset');
 
-// Settings Elements
+// Settings Elements (Modal + Inline Quick Studio Controls)
 const btnOpenSettings = document.getElementById('btn-open-settings');
 const btnCloseSettings = document.getElementById('btn-close-settings');
 const settingsModal = document.getElementById('settings-modal');
@@ -101,6 +119,8 @@ const inputApiKey = document.getElementById('input-api-key');
 const btnToggleKeyVis = document.getElementById('btn-toggle-key-vis');
 const selectDuration = document.getElementById('select-duration');
 const checkDeadAir = document.getElementById('check-dead-air');
+const quickSelectDuration = document.getElementById('quick-select-duration');
+const quickCheckDeadAir = document.getElementById('quick-check-dead-air');
 const btnSaveSettings = document.getElementById('btn-save-settings');
 
 // History Elements
@@ -110,6 +130,21 @@ const btnClearHistory = document.getElementById('btn-clear-history');
 const historyModal = document.getElementById('history-modal');
 const historyList = document.getElementById('history-list');
 const historyCountBadge = document.getElementById('history-count-badge');
+
+// Viral Captions Studio Modal Elements
+const captionsModal = document.getElementById('captions-modal');
+const captionsModalSubtitle = document.getElementById('captions-modal-subtitle');
+const btnCloseCaptions = document.getElementById('btn-close-captions');
+const captionBestPickText = document.getElementById('caption-best-pick-text');
+const btnCopyBestPick = document.getElementById('btn-copy-best-pick');
+const captionsLoadingIndicator = document.getElementById('captions-loading-indicator');
+const captionFeedbackPills = document.getElementById('caption-feedback-pills');
+const inputCaptionFeedback = document.getElementById('input-caption-feedback');
+const btnSubmitCaptionFeedback = document.getElementById('btn-submit-caption-feedback');
+const captionsOptionsList = document.getElementById('captions-options-list');
+const btnCopyAllCaptions = document.getElementById('btn-copy-all-captions');
+
+let activeCaptionContext = null;
 
 // Badges
 const aiEngineText = document.getElementById('ai-engine-text');
@@ -134,6 +169,8 @@ function initSettingsUI() {
     inputApiKey.value = settings.apiKey;
     selectDuration.value = settings.duration;
     checkDeadAir.checked = settings.removeDeadAir;
+    if (quickSelectDuration) quickSelectDuration.value = settings.duration;
+    if (quickCheckDeadAir) quickCheckDeadAir.checked = settings.removeDeadAir;
     updateBadges();
 }
 
@@ -155,12 +192,12 @@ function updateBadges() {
     } else {
         aiEngineText.textContent = 'Local AI Engine';
         previewEngine.textContent = 'Local Smart AI';
-        previewEngine.className = 'text-primary-light font-semibold';
+        previewEngine.className = 'text-rose-300 font-semibold';
     }
 
     previewDuration.textContent = `${settings.duration} sec`;
     previewDeadair.textContent = settings.removeDeadAir ? 'Active' : 'Off';
-    previewDeadair.className = settings.removeDeadAir ? 'text-emerald-400' : 'text-gray-400';
+    previewDeadair.className = settings.removeDeadAir ? 'text-emerald-400 font-semibold' : 'text-slate-400';
 }
 
 function initEventListeners() {
@@ -193,6 +230,24 @@ function initEventListeners() {
             showToast('Unable to read clipboard. Please paste manually (Ctrl+V).', 'error');
         }
     });
+
+    // Inline Quick Studio Controls
+    if (quickSelectDuration) {
+        quickSelectDuration.addEventListener('change', () => {
+            settings.duration = quickSelectDuration.value;
+            selectDuration.value = settings.duration;
+            localStorage.setItem('viralclipper_duration_v3', settings.duration);
+            updateBadges();
+        });
+    }
+    if (quickCheckDeadAir) {
+        quickCheckDeadAir.addEventListener('change', () => {
+            settings.removeDeadAir = quickCheckDeadAir.checked;
+            checkDeadAir.checked = settings.removeDeadAir;
+            localStorage.setItem('viralclipper_dead_air', String(settings.removeDeadAir));
+            updateBadges();
+        });
+    }
 
     // Processing actions
     btnGenerate.addEventListener('click', handleGenerate);
@@ -239,6 +294,9 @@ function initEventListeners() {
         settings.duration = selectDuration.value;
         settings.removeDeadAir = checkDeadAir.checked;
 
+        if (quickSelectDuration) quickSelectDuration.value = settings.duration;
+        if (quickCheckDeadAir) quickCheckDeadAir.checked = settings.removeDeadAir;
+
         localStorage.setItem('viralclipper_groq_key', settings.groqKey);
         localStorage.setItem('viralclipper_gemini_key', settings.apiKey);
         localStorage.setItem('viralclipper_duration_v3', settings.duration);
@@ -274,21 +332,104 @@ function initEventListeners() {
             showToast('History cleared!', 'success');
         });
     }
+
+    // Viral Captions Studio Modal
+    if (btnCloseCaptions) {
+        btnCloseCaptions.addEventListener('click', () => {
+            captionsModal.classList.add('hidden');
+        });
+    }
+    if (captionsModal) {
+        captionsModal.addEventListener('click', (e) => {
+            if (e.target === captionsModal) captionsModal.classList.add('hidden');
+        });
+    }
+    if (btnCopyBestPick) {
+        btnCopyBestPick.addEventListener('click', () => {
+            const text = (captionBestPickText && captionBestPickText.textContent || '').trim();
+            if (!text || text === 'Generating viral captions...') return;
+            navigator.clipboard.writeText(text).then(() => {
+                const orig = btnCopyBestPick.textContent;
+                btnCopyBestPick.textContent = '✓ Copied!';
+                setTimeout(() => { btnCopyBestPick.textContent = orig; }, 2000);
+                showToast('Best Pick caption copied!', 'success');
+            });
+        });
+    }
+    if (btnCopyAllCaptions) {
+        btnCopyAllCaptions.addEventListener('click', () => {
+            if (!activeCaptionContext || !activeCaptionContext.clip) return;
+            const caps = activeCaptionContext.clip.viral_captions || [];
+            const best = activeCaptionContext.clip.best_caption || '';
+            if (!caps.length) return;
+            const formatted = caps.map((c, i) => `${i + 1}. ${c}`).join('\n') + (best ? `\n\nBest Pick: ${best}` : '');
+            navigator.clipboard.writeText(formatted).then(() => {
+                const orig = btnCopyAllCaptions.textContent;
+                btnCopyAllCaptions.textContent = '✓ Copied!';
+                setTimeout(() => { btnCopyAllCaptions.textContent = orig; }, 2000);
+                showToast('All viral caption options copied!', 'success');
+            });
+        });
+    }
+    if (captionFeedbackPills) {
+        captionFeedbackPills.querySelectorAll('.btn-caption-feedback').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const fb = btn.getAttribute('data-feedback');
+                if (fb) requestViralCaptionsUpdate(fb);
+            });
+        });
+    }
+    if (btnSubmitCaptionFeedback) {
+        btnSubmitCaptionFeedback.addEventListener('click', () => {
+            const val = (inputCaptionFeedback && inputCaptionFeedback.value || '').trim();
+            if (!val) {
+                showToast('Enter feedback, a name, or style example first.', 'error');
+                return;
+            }
+            requestViralCaptionsUpdate(val);
+            inputCaptionFeedback.value = '';
+        });
+    }
+    if (inputCaptionFeedback) {
+        inputCaptionFeedback.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                btnSubmitCaptionFeedback.click();
+            }
+        });
+    }
+
+    // Keyboard Escape to close modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (captionsModal && !captionsModal.classList.contains('hidden')) {
+                captionsModal.classList.add('hidden');
+            } else if (settingsModal && !settingsModal.classList.contains('hidden')) {
+                settingsModal.classList.add('hidden');
+            } else if (historyModal && !historyModal.classList.contains('hidden')) {
+                historyModal.classList.add('hidden');
+            }
+        }
+    });
 }
 
 function switchInputTab(tab) {
     activeInputTab = tab;
 
     if (tab === 'upload') {
-        tabUpload.className = 'flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all bg-primary text-white shadow-md flex items-center justify-center gap-1.5';
-        tabYoutube.className = 'flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all text-gray-400 hover:text-white flex items-center justify-center gap-1.5';
+        tabUpload.className = 'cursor-pointer py-2 px-3.5 rounded-lg text-xs font-semibold transition-colors duration-200 bg-rose-600 text-white shadow-md flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500';
+        tabYoutube.className = 'cursor-pointer py-2 px-3.5 rounded-lg text-xs font-semibold transition-colors duration-200 text-slate-400 hover:text-white flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500';
+        tabUpload.setAttribute('aria-selected', 'true');
+        tabYoutube.setAttribute('aria-selected', 'false');
 
         dropZone.classList.remove('hidden');
         youtubeInputZone.classList.add('hidden');
         btnGenerate.disabled = !selectedFile;
     } else {
-        tabYoutube.className = 'flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all bg-primary text-white shadow-md flex items-center justify-center gap-1.5';
-        tabUpload.className = 'flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all text-gray-400 hover:text-white flex items-center justify-center gap-1.5';
+        tabYoutube.className = 'cursor-pointer py-2 px-3.5 rounded-lg text-xs font-semibold transition-colors duration-200 bg-rose-600 text-white shadow-md flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500';
+        tabUpload.className = 'cursor-pointer py-2 px-3.5 rounded-lg text-xs font-semibold transition-colors duration-200 text-slate-400 hover:text-white flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500';
+        tabYoutube.setAttribute('aria-selected', 'true');
+        tabUpload.setAttribute('aria-selected', 'false');
 
         dropZone.classList.add('hidden');
         youtubeInputZone.classList.remove('hidden');
@@ -327,6 +468,12 @@ async function checkBackendHealth() {
 
 function initDragDrop() {
     dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInput.click();
+        }
+    });
 
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -394,7 +541,7 @@ async function handleGenerate() {
         if (activeInputTab === 'upload') {
             if (!selectedFile) return;
             currentVideoLabel = selectedFile.name;
-            btnGenerate.textContent = 'Uploading Video...';
+            btnGenerate.innerHTML = `${ICONS.spinner}<span>Uploading Video...</span>`;
             uploadProgress.classList.remove('hidden');
             jobId = await uploadFile(selectedFile);
         } else {
@@ -407,7 +554,7 @@ async function handleGenerate() {
             }
 
             currentVideoLabel = ytUrl;
-            btnGenerate.innerHTML = '<span>Downloading from YouTube...</span><span class="animate-spin">⏳</span>';
+            btnGenerate.innerHTML = `${ICONS.spinner}<span>Downloading from YouTube...</span>`;
             uploadProgress.classList.remove('hidden');
             uploadProgressBar.style.width = '100%';
             uploadProgressText.textContent = 'Downloading video stream from YouTube in HD...';
@@ -420,7 +567,7 @@ async function handleGenerate() {
     } catch (err) {
         showToast(`${err.message}`, 'error');
         btnGenerate.disabled = false;
-        btnGenerate.innerHTML = '<span>Generate Viral Clips</span><span>⚡</span>';
+        btnGenerate.innerHTML = `<span>Generate Viral Clips</span>${ICONS.bolt}`;
         uploadProgress.classList.add('hidden');
     }
 }
@@ -557,12 +704,12 @@ function updateProgressUI(status) {
     progressPercent.textContent = `${percent}%`;
 
     const stepIcons = {
-        transcribing: '🎙️',
-        analyzing: '🧠',
-        cutting: '✂️',
-        done: '✅',
+        transcribing: ICONS.mic,
+        analyzing: ICONS.cpu,
+        cutting: ICONS.scissors,
+        done: ICONS.check,
     };
-    stepIcon.textContent = stepIcons[status.status] || '⏳';
+    stepIcon.innerHTML = stepIcons[status.status] || ICONS.spinner;
     stepText.textContent = status.step_description;
 
     const steps = ['transcribing', 'analyzing', 'cutting'];
@@ -637,15 +784,23 @@ function saveToHistory(data) {
     }
 }
 
+function getClipTranscript(clip) {
+    if (clip && typeof clip.transcript === 'string' && clip.transcript.trim()) {
+        return clip.transcript.trim();
+    }
+    const raw = (clip && clip.description) ? String(clip.description).trim() : '';
+    return raw.replace(/^["“]+|["”]+$/g, '').trim();
+}
+
 function renderHistoryModal() {
     if (!historyList) return;
     const list = getHistory();
     if (list.length === 0) {
         historyList.innerHTML = `
-            <div class="text-center py-12 text-gray-500">
-                <div class="text-3xl mb-2">📭</div>
-                <p class="text-sm font-medium text-gray-400">No history yet</p>
-                <p class="text-xs mt-1">Process a video and all its titles, captions, quotes & timestamps will be saved here automatically!</p>
+            <div class="text-center py-12 text-slate-500">
+                <div class="mb-3">${ICONS.inbox}</div>
+                <p class="text-sm font-semibold text-slate-300">No history yet</p>
+                <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Process a video and all its clip transcripts, titles &amp; timestamps will be saved here automatically.</p>
             </div>
         `;
         return;
@@ -654,48 +809,59 @@ function renderHistoryModal() {
     historyList.innerHTML = '';
     list.forEach((entry, idx) => {
         const itemEl = document.createElement('div');
-        itemEl.className = 'bg-dark-900 border border-dark-600 rounded-2xl p-4 space-y-3';
+        itemEl.className = 'bg-dark-950/90 border border-white/10 rounded-2xl p-4 space-y-3';
 
-        const clipsHtml = (entry.clips || []).map((clip) => {
+        const clipsHtml = (entry.clips || []).map((clip, clipIdx) => {
             const fileLabel = clip.filename || `clip_${String(clip.rank).padStart(2, '0')}_score${clip.virality_score}.mp4`;
+            const clipTranscript = getClipTranscript(clip);
             return `
-            <div class="bg-dark-800 border border-dark-700 rounded-xl p-3 flex flex-col gap-1.5">
+            <div class="bg-dark-800/90 border border-white/5 rounded-xl p-3.5 flex flex-col gap-2">
                 <div class="flex flex-wrap items-start justify-between gap-2">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="px-2 py-0.5 bg-primary/20 text-primary-light font-bold rounded text-[11px]">#${clip.rank} (${clip.virality_score}/100)</span>
-                        <span class="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono rounded text-[11px]">📄 ${escapeHtml(fileLabel)}</span>
-                        <span class="font-bold text-gray-100 text-xs">${escapeHtml(clip.title)}</span>
+                        <span class="px-2 py-0.5 bg-rose-500/20 text-rose-300 font-mono font-bold rounded-md text-[11px]">#${clip.rank} (${clip.virality_score}/100)</span>
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono rounded-md text-[11px]">
+                            ${ICONS.fileVideo}
+                            <span>${escapeHtml(fileLabel)}</span>
+                        </span>
+                        <span class="font-bold text-white text-xs">${escapeHtml(clip.title)}</span>
                     </div>
-                    <span class="text-[11px] font-mono text-gray-400 whitespace-nowrap bg-dark-700 px-2 py-0.5 rounded">
+                    <span class="text-[11px] font-mono text-slate-400 whitespace-nowrap bg-dark-900 px-2 py-0.5 rounded-md border border-white/5">
                         ${formatDuration(clip.start_time)} - ${formatDuration(clip.end_time)} (${Number(clip.duration || 0).toFixed(1)}s)
                     </span>
                 </div>
-                <p class="text-[11px] text-gray-300 italic bg-dark-900/60 p-2 rounded border border-dark-700/50">
-                    ${escapeHtml(clip.description)}
+                <p class="text-[11px] text-slate-300 bg-dark-950/80 p-2.5 rounded-lg border border-white/5 leading-relaxed max-h-28 overflow-y-auto">
+                    ${escapeHtml(clipTranscript)}
                 </p>
-                <div class="flex items-center justify-between pt-1 gap-2">
-                    <span class="text-[11px] text-gray-400 truncate">${escapeHtml(clip.reason)}</span>
-                    <button data-caption="${escapeHtml(`${clip.title}\n\n${clip.description}\n\n${clip.reason}\n\n#viral #shorts #reels`)}" class="btn-hist-copy px-3 py-1 bg-primary/20 hover:bg-primary/30 text-primary-light border border-primary/30 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all">
-                        📋 Copy Caption
-                    </button>
+                <div class="flex items-center justify-between pt-1 gap-2 flex-wrap">
+                    <span class="text-[11px] text-slate-400 truncate flex-1 min-w-0">${escapeHtml(clip.reason)}</span>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" data-entry-idx="${idx}" data-clip-idx="${clipIdx}" class="cursor-pointer btn-hist-captions inline-flex items-center gap-1 px-2.5 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-colors duration-200" title="Open 5-10 viral in-video captions">
+                            ✨ Viral Captions
+                        </button>
+                        <button type="button" data-entry-idx="${idx}" data-clip-idx="${clipIdx}" class="cursor-pointer btn-hist-copy inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-colors duration-200" title="Copy clip transcript">
+                            ${ICONS.copy}
+                            <span>Copy Transcript</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
         }).join('');
 
         itemEl.innerHTML = `
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-dark-700">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/10">
                 <div>
-                    <h4 class="font-bold text-sm text-gray-100">${escapeHtml(entry.video_name)}</h4>
-                    <p class="text-[11px] text-gray-400">${escapeHtml(entry.created_at)} • ${entry.total_clips} clips • Video length: ${formatDuration(entry.video_duration || 0)}</p>
+                    <h4 class="font-bold text-sm text-white">${escapeHtml(entry.video_name)}</h4>
+                    <p class="text-[11px] font-mono text-slate-400 mt-0.5">${escapeHtml(entry.created_at)} • ${entry.total_clips} clips • Duration: ${formatDuration(entry.video_duration || 0)}</p>
                 </div>
                 <div class="flex items-center gap-2">
                     ${entry.transcript_text ? `
-                        <button data-idx="${idx}" class="btn-hist-copy-transcript px-2.5 py-1.5 bg-dark-700 hover:bg-dark-600 border border-dark-600 rounded-xl text-xs text-gray-300 font-medium transition-all" title="Copy full transcript">
-                            📝 Copy Transcript
+                        <button type="button" data-idx="${idx}" class="cursor-pointer btn-hist-copy-transcript inline-flex items-center gap-1.5 px-3 py-1.5 bg-dark-700 hover:bg-dark-600 border border-white/10 rounded-xl text-xs text-slate-200 font-semibold transition-colors duration-200" title="Copy full video transcript">
+                            ${ICONS.fileText}
+                            <span>Full Transcript</span>
                         </button>
                     ` : ''}
-                    <button data-idx="${idx}" class="btn-hist-open px-3 py-1.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-semibold transition-all">
+                    <button type="button" data-idx="${idx}" class="cursor-pointer btn-hist-open px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition-colors duration-200">
                         Open Clips View
                     </button>
                 </div>
@@ -708,15 +874,23 @@ function renderHistoryModal() {
         historyList.appendChild(itemEl);
     });
 
-    // Attach copy caption listeners
+    // Attach copy clip transcript listeners
     historyList.querySelectorAll('.btn-hist-copy').forEach((btn) => {
         btn.addEventListener('click', () => {
-            const text = btn.getAttribute('data-caption') || '';
+            const entryIdx = parseInt(btn.getAttribute('data-entry-idx'), 10);
+            const clipIdx = parseInt(btn.getAttribute('data-clip-idx'), 10);
+            const entry = list[entryIdx];
+            const clip = entry && entry.clips ? entry.clips[clipIdx] : null;
+            const text = getClipTranscript(clip);
+            if (!text) {
+                showToast('No transcript available for this clip.', 'error');
+                return;
+            }
             navigator.clipboard.writeText(text).then(() => {
-                const orig = btn.textContent;
-                btn.textContent = '✓ Copied!';
-                setTimeout(() => { btn.textContent = orig; }, 2000);
-                showToast('Full caption & quote copied to clipboard!', 'success');
+                const origHtml = btn.innerHTML;
+                btn.innerHTML = `${ICONS.check}<span>Copied</span>`;
+                setTimeout(() => { btn.innerHTML = origHtml; }, 2000);
+                showToast('Clip transcript copied to clipboard!', 'success');
             });
         });
     });
@@ -728,12 +902,27 @@ function renderHistoryModal() {
             const entry = list[idx];
             if (entry && entry.transcript_text) {
                 navigator.clipboard.writeText(entry.transcript_text).then(() => {
-                    const orig = btn.textContent;
-                    btn.textContent = '✓ Copied!';
-                    setTimeout(() => { btn.textContent = orig; }, 2000);
+                    const origHtml = btn.innerHTML;
+                    btn.innerHTML = `${ICONS.check}<span>Copied</span>`;
+                    setTimeout(() => { btn.innerHTML = origHtml; }, 2000);
                     showToast('Full transcript copied to clipboard!', 'success');
                 });
             }
+        });
+    });
+
+    // Attach "Viral Captions" modal listeners in History
+    historyList.querySelectorAll('.btn-hist-captions').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const entryIdx = parseInt(btn.getAttribute('data-entry-idx'), 10);
+            const clipIdx = parseInt(btn.getAttribute('data-clip-idx'), 10);
+            const entry = list[entryIdx];
+            const clip = entry && entry.clips ? entry.clips[clipIdx] : null;
+            if (!clip) return;
+            openCaptionsModal(clip, () => {
+                localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(list));
+                renderHistoryModal();
+            });
         });
     });
 
@@ -770,8 +959,7 @@ function handleCopyTranscript() {
     if (!currentResultsData) return;
     const transcript = currentResultsData.transcript_text;
     if (!transcript) {
-        // Fallback: assemble transcript from generated clip quotes if full transcript is empty
-        const fallback = (currentResultsData.clips || []).map(c => `[${formatDuration(c.start_time)} - ${formatDuration(c.end_time)}] ${c.title}\n${c.description}`).join('\n\n');
+        const fallback = (currentResultsData.clips || []).map(c => getClipTranscript(c)).filter(Boolean).join('\n\n');
         if (fallback) {
             navigator.clipboard.writeText(fallback).then(() => {
                 showToast('Copied clips transcript to clipboard!', 'success');
@@ -785,7 +973,7 @@ function handleCopyTranscript() {
     navigator.clipboard.writeText(transcript).then(() => {
         if (btnCopyTranscriptText) {
             const originalText = btnCopyTranscriptText.textContent;
-            btnCopyTranscriptText.textContent = '✓ Copied!';
+            btnCopyTranscriptText.textContent = 'Copied!';
             setTimeout(() => { btnCopyTranscriptText.textContent = originalText; }, 2000);
         }
         showToast('Full transcript copied to clipboard!', 'success');
@@ -803,6 +991,10 @@ function handleToggleSelectAll() {
     checkboxes.forEach((cb) => {
         cb.checked = isChecked;
         const filename = cb.getAttribute('data-filename');
+        const card = cb.closest('.clip-card');
+        if (card) {
+            card.classList.toggle('is-selected', isChecked);
+        }
         if (isChecked && filename) {
             selectedClipsSet.add(filename);
         }
@@ -811,11 +1003,15 @@ function handleToggleSelectAll() {
     updateSelectedCountUI();
 }
 
-function handleClipCheckboxChange(filename, isChecked) {
+function handleClipCheckboxChange(filename, isChecked, cardEl) {
     if (isChecked) {
         selectedClipsSet.add(filename);
     } else {
         selectedClipsSet.delete(filename);
+    }
+
+    if (cardEl) {
+        cardEl.classList.toggle('is-selected', isChecked);
     }
 
     const totalClips = currentResultsData ? currentResultsData.clips.length : 0;
@@ -834,7 +1030,7 @@ function updateSelectedCountUI() {
     if (btnDownloadSelected) {
         btnDownloadSelected.disabled = count === 0;
         btnDownloadSelected.innerHTML = `
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
             </svg>
             <span>Download Selected (${count})</span>
@@ -849,7 +1045,6 @@ async function handleDownloadSelected() {
 
     showToast(`Starting download for ${filenames.length} clip(s)...`, 'success');
 
-    // Trigger individual downloads with small delay so browser doesn't block multi-download popups
     for (let i = 0; i < filenames.length; i++) {
         const fname = filenames[i];
         const clipUrl = `${API_BASE}/api/clips/${jobId}/${fname}?download=true`;
@@ -867,6 +1062,158 @@ async function handleDownloadSelected() {
     }
 }
 
+function updateClipInHistory(jobId, updatedClip) {
+    if (!jobId || !updatedClip) return;
+    try {
+        const list = getHistory();
+        const entry = list.find((item) => item.job_id === jobId);
+        if (entry && Array.isArray(entry.clips)) {
+            const target = entry.clips.find(
+                (c) => c.rank === updatedClip.rank || (updatedClip.filename && c.filename === updatedClip.filename)
+            );
+            if (target) {
+                target.viral_captions = updatedClip.viral_captions;
+                target.best_caption = updatedClip.best_caption;
+                target.title = updatedClip.title;
+                localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(list));
+            }
+        }
+    } catch (e) {
+        console.warn('Could not sync caption update to history:', e);
+    }
+}
+
+function setCaptionsModalLoading(isLoading) {
+    if (captionsLoadingIndicator) {
+        captionsLoadingIndicator.classList.toggle('hidden', !isLoading);
+    }
+    if (btnSubmitCaptionFeedback) {
+        btnSubmitCaptionFeedback.disabled = isLoading;
+    }
+    if (captionFeedbackPills) {
+        captionFeedbackPills.querySelectorAll('.btn-caption-feedback').forEach((b) => {
+            b.disabled = isLoading;
+            b.classList.toggle('opacity-50', isLoading);
+        });
+    }
+}
+
+function renderCaptionsModalContent() {
+    if (!activeCaptionContext || !activeCaptionContext.clip) return;
+    const { clip } = activeCaptionContext;
+    const captions = Array.isArray(clip.viral_captions) ? clip.viral_captions : [];
+    const bestPick = clip.best_caption || captions[0] || clip.title || 'Generating viral captions...';
+
+    if (captionBestPickText) {
+        captionBestPickText.textContent = bestPick;
+    }
+    if (!captionsOptionsList) return;
+
+    if (!captions.length) {
+        captionsOptionsList.innerHTML = `
+            <div class="p-4 rounded-xl bg-dark-950/70 border border-white/5 text-center text-slate-400">
+                Generating 5–10 viral caption ideas...
+            </div>
+        `;
+        return;
+    }
+
+    captionsOptionsList.innerHTML = '';
+    captions.forEach((cap, i) => {
+        const isBest = cap.trim().toLowerCase() === bestPick.trim().toLowerCase();
+        const row = document.createElement('div');
+        row.className = `flex items-center justify-between gap-3 p-3 rounded-xl border transition-colors ${
+            isBest
+                ? 'bg-rose-500/10 border-rose-500/35'
+                : 'bg-dark-950/70 border-white/5 hover:border-white/15'
+        }`;
+        row.innerHTML = `
+            <div class="flex items-start gap-2.5 min-w-0 flex-1">
+                <span class="w-6 h-6 rounded-lg bg-dark-800 border border-white/10 text-[11px] font-mono font-bold text-slate-300 flex items-center justify-center shrink-0">${i + 1}</span>
+                <p class="text-xs sm:text-[13px] font-semibold text-white leading-snug break-words pt-0.5">${escapeHtml(cap)}</p>
+            </div>
+            <button type="button" class="btn-copy-opt cursor-pointer shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 bg-dark-800 hover:bg-dark-700 border border-white/10 rounded-lg text-[11px] font-semibold text-slate-200 transition-colors">
+                ${ICONS.copy}
+                <span>Copy</span>
+            </button>
+        `;
+        const copyBtn = row.querySelector('.btn-copy-opt');
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(cap).then(() => {
+                const orig = copyBtn.innerHTML;
+                copyBtn.innerHTML = `${ICONS.check}<span>Copied</span>`;
+                setTimeout(() => { copyBtn.innerHTML = orig; }, 2000);
+                showToast(`Caption #${i + 1} copied!`, 'success');
+            });
+        });
+        captionsOptionsList.appendChild(row);
+    });
+}
+
+async function requestViralCaptionsUpdate(feedback = null) {
+    if (!activeCaptionContext || !activeCaptionContext.clip) return;
+    const { clip, onUpdate } = activeCaptionContext;
+    const transcript = getClipTranscript(clip) || clip.title || '';
+    if (!transcript.trim()) {
+        showToast('No clip transcript available to generate captions.', 'error');
+        return;
+    }
+
+    setCaptionsModalLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/captions/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                transcript,
+                feedback: feedback || null,
+                previous_captions: clip.viral_captions || [],
+                groq_api_key: settings.groqKey || null,
+                gemini_api_key: settings.apiKey || null,
+            }),
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || `Failed (${res.status})`);
+        }
+        const data = await res.json();
+        clip.viral_captions = Array.isArray(data.captions) ? data.captions : [];
+        clip.best_caption = data.best_pick || clip.viral_captions[0] || clip.title;
+        if (clip.best_caption) {
+            clip.title = clip.best_caption;
+        }
+        renderCaptionsModalContent();
+        if (typeof onUpdate === 'function') {
+            onUpdate(clip);
+        }
+        if (feedback) {
+            showToast(`Refined captions with: "${feedback}"`, 'success');
+        }
+    } catch (err) {
+        showToast(`Caption generation failed: ${err.message}`, 'error');
+    } finally {
+        setCaptionsModalLoading(false);
+    }
+}
+
+function openCaptionsModal(clip, onUpdateCallback) {
+    if (!captionsModal || !clip) return;
+    activeCaptionContext = { clip, onUpdate: onUpdateCallback };
+    const filename = clip.filename || `clip_${String(clip.rank).padStart(2, '0')}_score${clip.virality_score}.mp4`;
+    if (captionsModalSubtitle) {
+        captionsModalSubtitle.textContent = `#${clip.rank} • ${filename} • ${formatDuration(clip.start_time)} - ${formatDuration(clip.end_time)}`;
+    }
+    if (inputCaptionFeedback) {
+        inputCaptionFeedback.value = '';
+    }
+    renderCaptionsModalContent();
+    captionsModal.classList.remove('hidden');
+
+    if (!Array.isArray(clip.viral_captions) || clip.viral_captions.length === 0) {
+        requestViralCaptionsUpdate(null);
+    }
+}
+
 function createClipCard(clip, jobId) {
     const card = document.createElement('div');
     card.className = 'clip-card fade-in';
@@ -875,63 +1222,93 @@ function createClipCard(clip, jobId) {
     const viralityClass = clip.virality_score >= 75 ? 'virality-high' : clip.virality_score >= 50 ? 'virality-mid' : 'virality-low';
     const clipUrl = `${API_BASE}/api/clips/${jobId}/${clip.filename}`;
     const filename = clip.filename || `clip_${String(clip.rank).padStart(2, '0')}_score${clip.virality_score}.mp4`;
+    const clipTranscript = getClipTranscript(clip);
+    const bestCaption = clip.best_caption || clip.title;
+    const captionCount = Array.isArray(clip.viral_captions) && clip.viral_captions.length ? clip.viral_captions.length : '5–10';
 
     card.innerHTML = `
-        <div class="relative">
+        <div class="relative bg-black">
             <!-- Checkbox selection badge -->
-            <label class="absolute top-3 right-3 z-10 bg-dark-900/80 backdrop-blur-md border border-dark-600 rounded-lg p-1.5 flex items-center justify-center cursor-pointer hover:border-primary transition-all shadow-md">
-                <input type="checkbox" data-filename="${escapeHtml(filename)}" class="clip-select-check w-4 h-4 rounded text-primary bg-dark-900 border-dark-500 cursor-pointer accent-purple-600">
+            <label class="absolute top-3 right-3 z-10 bg-dark-950/85 backdrop-blur-md border border-white/15 rounded-lg p-1.5 flex items-center justify-center cursor-pointer hover:border-rose-500 transition-colors shadow-lg" title="Select clip for batch download">
+                <input type="checkbox" data-filename="${escapeHtml(filename)}" class="clip-select-check w-4 h-4 rounded text-rose-600 bg-dark-900 border-dark-500 cursor-pointer accent-rose-600">
             </label>
             <div class="rank-badge ${rankClass}">#${clip.rank}</div>
-            <video controls preload="metadata" class="w-full rounded-t-2xl">
+            <video controls preload="metadata" class="w-full">
                 <source src="${clipUrl}" type="video/mp4">
                 Your browser does not support video playback.
             </video>
         </div>
-        <div class="p-4">
-            <div class="flex items-center justify-between gap-2 mb-1.5">
-                <span class="px-2 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono rounded text-[11px]">
-                    📄 ${escapeHtml(filename)}
+        <div class="p-4 sm:p-5 flex-1 flex flex-col">
+            <div class="flex items-center justify-between gap-2 mb-2.5">
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 font-mono rounded-md text-[11px] truncate">
+                    ${ICONS.fileVideo}
+                    <span class="truncate">${escapeHtml(filename)}</span>
                 </span>
-                <span class="text-[11px] font-mono text-gray-400 whitespace-nowrap bg-dark-700 px-2 py-0.5 rounded-md">
+                <span class="text-[11px] font-mono text-slate-400 whitespace-nowrap bg-dark-900 px-2 py-0.5 rounded-md border border-white/5">
                     ${formatDuration(clip.start_time)} - ${formatDuration(clip.end_time)}
                 </span>
             </div>
-            <div class="flex items-start justify-between gap-2 mb-2">
-                <h3 class="font-bold text-sm text-gray-100 flex-1 leading-snug">${escapeHtml(clip.title)}</h3>
+
+            <div class="flex items-start justify-between gap-2 mb-2.5">
+                <h3 class="clip-card-title font-bold text-sm sm:text-base text-white flex-1 leading-snug">${escapeHtml(clip.title)}</h3>
             </div>
 
-            <div class="flex items-center gap-2 mb-2.5">
+            <!-- Virality Score Meter -->
+            <div class="flex items-center gap-2.5 mb-3">
                 <div class="virality-bar flex-1">
                     <div class="virality-bar-fill ${viralityClass}" style="width: ${clip.virality_score}%"></div>
                 </div>
-                <span class="text-xs font-extrabold ${clip.virality_score >= 75 ? 'text-emerald-400' : clip.virality_score >= 50 ? 'text-amber-400' : 'text-rose-400'}">
+                <span class="text-xs font-mono font-extrabold ${clip.virality_score >= 75 ? 'text-emerald-400' : clip.virality_score >= 50 ? 'text-amber-400' : 'text-rose-400'}">
                     ${clip.virality_score}/100
                 </span>
             </div>
 
-            <p class="text-[11px] text-gray-300 italic mb-2 bg-dark-900/60 p-2 rounded-lg border border-dark-700/50 leading-relaxed">
-                ${escapeHtml(clip.description)}
+            <!-- Best Pick In-Video Caption Box -->
+            <div class="mb-2.5 bg-gradient-to-br from-rose-500/10 via-dark-950/90 to-indigo-500/10 p-3 rounded-xl border border-rose-500/30">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-rose-400">★ Best Pick In-Video Caption</span>
+                    <button type="button" class="btn-copy-best-card cursor-pointer inline-flex items-center gap-1 px-2 py-0.5 bg-dark-800 hover:bg-dark-700 border border-white/10 rounded-md text-[10px] font-semibold text-slate-200 transition-colors" title="Copy Best Pick caption">
+                        ${ICONS.copy}
+                        <span>Copy</span>
+                    </button>
+                </div>
+                <p class="clip-best-caption text-xs font-bold text-white leading-snug mb-2">${escapeHtml(bestCaption)}</p>
+                <button type="button" class="btn-open-captions cursor-pointer w-full py-1.5 px-2.5 bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 rounded-lg text-[11px] font-semibold text-indigo-300 transition-colors flex items-center justify-center gap-1.5">
+                    <span>✨</span>
+                    <span class="btn-open-captions-label">${captionCount} Viral Captions &amp; Feedback</span>
+                </button>
+            </div>
+
+            <!-- Full Clip Transcript -->
+            <div class="mb-2.5 bg-dark-950/70 p-2.5 rounded-xl border border-white/5">
+                <span class="block text-[10px] font-mono uppercase tracking-wider text-slate-400 mb-1">Clip Transcript</span>
+                <p class="text-[11px] text-slate-200 leading-relaxed max-h-24 overflow-y-auto pr-1">
+                    ${escapeHtml(clipTranscript)}
+                </p>
+            </div>
+
+            <!-- Lesson & Value -->
+            <p class="text-xs text-slate-400 mb-4 bg-dark-900/70 p-2.5 rounded-xl border border-white/5 leading-relaxed flex-1">
+                <span class="text-rose-400 font-semibold">Why It Works:</span> ${escapeHtml(clip.reason)}
             </p>
 
-            <p class="text-xs text-gray-400 mb-3 bg-dark-800/80 p-2.5 rounded-xl border border-dark-700/80 leading-relaxed">
-                <span class="text-primary-light font-medium">Lesson & Value:</span> ${escapeHtml(clip.reason)}
-            </p>
-
-            <div class="flex items-center justify-between pt-1">
-                <span class="text-[11px] font-medium px-2 py-0.5 bg-dark-700 rounded-full text-gray-400">
-                    ⏱️ ${clip.duration.toFixed(1)}s
+            <!-- Card Footer Actions -->
+            <div class="flex items-center justify-between pt-2 border-t border-white/5 mt-auto">
+                <span class="inline-flex items-center gap-1.5 text-[11px] font-mono font-medium px-2.5 py-1 bg-dark-900 border border-white/5 rounded-lg text-slate-400">
+                    ${ICONS.clock}
+                    <span>${clip.duration.toFixed(1)}s</span>
                 </span>
                 
                 <div class="flex items-center gap-2">
-                    <button class="btn-copy-caption px-2.5 py-1.5 bg-dark-700 hover:bg-dark-600 rounded-lg text-xs text-gray-300 font-medium transition-all" title="Copy title & hook caption">
-                        📋 Copy
+                    <button type="button" class="cursor-pointer btn-copy-transcript inline-flex items-center gap-1.5 px-3 py-1.5 bg-dark-700 hover:bg-dark-600 border border-white/10 rounded-xl text-xs text-slate-200 font-semibold transition-colors duration-200" title="Copy clip transcript to clipboard">
+                        ${ICONS.copy}
+                        <span>Copy Transcript</span>
                     </button>
-                    <a href="${clipUrl}?download=true" download="${filename}" class="btn-download text-xs font-semibold">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="${clipUrl}?download=true" download="${filename}" class="btn-download">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>
-                        Download
+                        <span>Download</span>
                     </a>
                 </div>
             </div>
@@ -940,17 +1317,53 @@ function createClipCard(clip, jobId) {
 
     const checkbox = card.querySelector('.clip-select-check');
     checkbox.checked = selectedClipsSet.has(filename);
+    card.classList.toggle('is-selected', checkbox.checked);
     checkbox.addEventListener('change', () => {
-        handleClipCheckboxChange(filename, checkbox.checked);
+        handleClipCheckboxChange(filename, checkbox.checked, card);
     });
 
-    const btnCopy = card.querySelector('.btn-copy-caption');
+    const cardTitleEl = card.querySelector('.clip-card-title');
+    const cardBestEl = card.querySelector('.clip-best-caption');
+    const cardBtnLabel = card.querySelector('.btn-open-captions-label');
+
+    const btnCopyBestCard = card.querySelector('.btn-copy-best-card');
+    btnCopyBestCard.addEventListener('click', () => {
+        const text = (clip.best_caption || clip.title || '').trim();
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            const origHtml = btnCopyBestCard.innerHTML;
+            btnCopyBestCard.innerHTML = `${ICONS.check}<span>Copied</span>`;
+            setTimeout(() => { btnCopyBestCard.innerHTML = origHtml; }, 2000);
+            showToast('Best Pick caption copied!', 'success');
+        });
+    });
+
+    const btnOpenCaptions = card.querySelector('.btn-open-captions');
+    btnOpenCaptions.addEventListener('click', () => {
+        openCaptionsModal(clip, (updated) => {
+            const nextBest = updated.best_caption || updated.title;
+            if (cardTitleEl) cardTitleEl.textContent = nextBest;
+            if (cardBestEl) cardBestEl.textContent = nextBest;
+            if (cardBtnLabel && Array.isArray(updated.viral_captions)) {
+                cardBtnLabel.textContent = `${updated.viral_captions.length} Viral Captions & Feedback`;
+            }
+            updateClipInHistory(jobId, updated);
+        });
+    });
+
+    const btnCopy = card.querySelector('.btn-copy-transcript');
     btnCopy.addEventListener('click', () => {
-        const textToCopy = `${clip.title}\n\n${clip.reason}\n\n#viral #shorts #reels`;
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            btnCopy.textContent = '✓ Copied!';
-            setTimeout(() => { btnCopy.textContent = '📋 Copy'; }, 2000);
-            showToast('Caption copied to clipboard!', 'success');
+        if (!clipTranscript) {
+            showToast('No transcript available for this clip.', 'error');
+            return;
+        }
+        navigator.clipboard.writeText(clipTranscript).then(() => {
+            const origHtml = btnCopy.innerHTML;
+            btnCopy.innerHTML = `${ICONS.check}<span>Copied</span>`;
+            setTimeout(() => { btnCopy.innerHTML = origHtml; }, 2000);
+            showToast('Clip transcript copied to clipboard!', 'success');
+        }).catch(() => {
+            showToast('Failed to copy transcript to clipboard.', 'error');
         });
     });
 
@@ -998,7 +1411,7 @@ function resetApp() {
     dropZoneContent.classList.remove('hidden');
     filePreview.classList.add('hidden');
     btnGenerate.disabled = true;
-    btnGenerate.innerHTML = '<span>Generate Viral Clips</span><span>⚡</span>';
+    btnGenerate.innerHTML = `<span>Generate Viral Clips</span>${ICONS.bolt}`;
     uploadProgress.classList.add('hidden');
     uploadProgressBar.style.width = '0%';
     fileInput.value = '';
@@ -1057,16 +1470,21 @@ function showToast(message, type = 'error') {
     toast.className = `toast ${type === 'success' ? 'toast-success' : ''}`;
     toast.innerHTML = `
         <div class="flex items-start gap-2.5">
-            <span class="text-base">${type === 'error' ? '❌' : '✅'}</span>
-            <p class="text-xs font-medium text-gray-200 flex-1 leading-snug">${escapeHtml(message)}</p>
-            <button class="text-gray-400 hover:text-white text-base leading-none" onclick="this.closest('.toast').remove()">&times;</button>
+            ${type === 'error' ? ICONS.alertCircle : ICONS.checkCircle}
+            <p class="text-xs font-medium text-slate-200 flex-1 leading-snug">${escapeHtml(message)}</p>
+            <button type="button" aria-label="Dismiss notification" class="cursor-pointer text-slate-400 hover:text-white leading-none p-0.5" onclick="this.closest('.toast').remove()">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
         </div>
     `;
     container.appendChild(toast);
 
     setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease-in forwards';
-        setTimeout(() => toast.remove(), 300);
+        toast.style.animation = 'slideOut 0.25s ease-in forwards';
+        setTimeout(() => toast.remove(), 250);
     }, 4500);
 }
 
