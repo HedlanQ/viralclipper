@@ -86,6 +86,8 @@ def extract_clip_transcript(
     if words:
         matched_words = []
         for w in words:
+            if not isinstance(w, dict):
+                continue
             w_start = float(w.get("start", 0.0))
             w_end = float(w.get("end", w_start))
             w_mid = (w_start + w_end) / 2.0
@@ -392,13 +394,13 @@ def analyze_transcript_heuristic(
                 continue
 
             full_text = " ".join(accumulated_texts).strip()
-            words = full_text.split()
-            word_count = len(words)
+            text_words = full_text.split()
+            word_count = len(text_words)
             words_per_sec = word_count / max(dur, 1.0)
 
-            n_words = len(words)
-            opening_text = " ".join(words[: max(10, int(n_words * 0.35))]).lower()
-            closing_text = " ".join(words[int(n_words * 0.60) :]).lower()
+            n_words = len(text_words)
+            opening_text = " ".join(text_words[: max(10, int(n_words * 0.35))]).lower()
+            closing_text = " ".join(text_words[int(n_words * 0.60) :]).lower()
             last_sentence = re.split(r"(?<=[.!?])\s+", full_text)[-1].lower()
             full_lower = full_text.lower()
 
