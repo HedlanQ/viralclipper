@@ -1044,27 +1044,63 @@ function updateSelectedCountUI() {
     }
 }
 
+async function downloadClipFile(clipUrl, filename, btnEl = null) {
+    let origHtml = null;
+    if (btnEl) {
+        origHtml = btnEl.innerHTML;
+        btnEl.disabled = true;
+        btnEl.classList.add('opacity-70', 'pointer-events-none');
+        btnEl.innerHTML = `${ICONS.spinner}<span>Saving...</span>`;
+    }
+    try {
+        const res = await fetch(`${clipUrl}?download=true`);
+        if (!res.ok) {
+            if (res.status === 404) {
+                throw new Error(`Clip file "${filename}" expired on the cloud server after a restart. Re-process the video to download the MP4.`);
+            }
+            throw new Error(`Download failed (HTTP ${res.status})`);
+        }
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+        return true;
+    } catch (err) {
+        showToast(err.message || `Failed to download ${filename}`, 'error');
+        return false;
+    } finally {
+        if (btnEl && origHtml !== null) {
+            btnEl.disabled = false;
+            btnEl.classList.remove('opacity-70', 'pointer-events-none');
+            btnEl.innerHTML = origHtml;
+        }
+    }
+}
+
 async function handleDownloadSelected() {
     if (selectedClipsSet.size === 0 || !currentResultsData) return;
     const filenames = Array.from(selectedClipsSet);
     const jobId = currentResultsData.job_id;
 
-    showToast(`Starting download for ${filenames.length} clip(s)...`, 'success');
+    showToast(`Downloading ${filenames.length} selected clip(s)...`, 'success');
+    if (btnDownloadSelected) btnDownloadSelected.disabled = true;
 
+    let successCount = 0;
     for (let i = 0; i < filenames.length; i++) {
         const fname = filenames[i];
-        const clipUrl = `${API_BASE}/api/clips/${jobId}/${fname}?download=true`;
+        const clipUrl = `${API_BASE}/api/clips/${jobId}/${fname}`;
+        const ok = await downloadClipFile(clipUrl, fname);
+        if (ok) successCount++;
+    }
 
-        const a = document.createElement('a');
-        a.href = clipUrl;
-        a.download = fname;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        if (i < filenames.length - 1) {
-            await new Promise(r => setTimeout(r, 600));
-        }
+    updateSelectedCountUI();
+    if (successCount > 0) {
+        showToast(`Downloaded ${successCount} clip(s) successfully!`, 'success');
     }
 }
 
@@ -1372,6 +1408,14 @@ function createClipCard(clip, jobId) {
             showToast('Failed to copy transcript to clipboard.', 'error');
         });
     });
+
+    const btnDownload = card.querySelector('.btn-download');
+    if (btnDownload) {
+        btnDownload.addEventListener('click', (e) => {
+            e.preventDefault();
+            downloadClipFile(clipUrl, filename, btnDownload);
+        });
+    }
 
     return card;
 }

@@ -447,13 +447,6 @@ async def serve_clip(request: Request, job_id: str, clip_filename: str, download
         "Content-Disposition": f'{disposition}; filename="{safe_filename}"',
     }
 
-    if download:
-        return FileResponse(
-            clip_path,
-            media_type="video/mp4",
-            headers=headers,
-        )
-
     range_header = request.headers.get("range")
     if range_header:
         match = re.match(r"bytes=(\d*)-(\d*)", range_header.strip())

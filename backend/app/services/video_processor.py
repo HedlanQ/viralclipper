@@ -305,17 +305,18 @@ def _cut_single_clip(
             logger.info(
                 f"Turbo Keyframe-Locked Stream Copy #{clip.rank}: {actual_start:.2f}s (kf) -> {p_end:.2f}s ({duration:.2f}s)"
             )
+            seek_target = round(actual_start + 0.02, 4)
             cmd_fast = [
                 "ffmpeg",
                 "-y",
                 "-nostats",
-                "-ss", str(actual_start),
+                "-noaccurate_seek",
+                "-ss", str(seek_target),
                 "-i", video_path,
                 "-t", str(duration),
                 "-c:v", "copy",
                 "-c:a", "aac",
                 "-b:a", "128k",
-                "-af", "aresample=async=1:first_pts=0",
                 "-avoid_negative_ts", "make_zero",
                 "-movflags", "+faststart",
                 output_path,
