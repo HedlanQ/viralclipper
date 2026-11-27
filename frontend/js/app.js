@@ -668,6 +668,12 @@ function startPolling(jobId) {
     pollInterval = setInterval(async () => {
         try {
             const res = await fetch(`${API_BASE}/api/status/${jobId}`);
+            if (res.status === 404) {
+                stopPolling();
+                stopMessageRotation();
+                showError('Processing job was interrupted (the server restarted or timed out). Please try uploading again.');
+                return;
+            }
             if (!res.ok) throw new Error('Failed to fetch status');
 
             const status = await res.json();

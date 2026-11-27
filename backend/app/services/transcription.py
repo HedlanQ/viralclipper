@@ -206,64 +206,63 @@ def _extract_audio_for_transcription(video_path: str, for_cloud: bool = False) -
     speech_filter = "highpass=f=80,dynaudnorm=f=150:g=15:m=10"
 
     if for_cloud:
-        # Try clean 48kbps 16kHz mono AAC first (crystal clear speech; ~360 KB/min).
-        # Step down to 32k/24k only if file exceeds Groq's 25MB limit.
-        for bitrate in ("48k", "32k", "24k"):
-            temp_audio = os.path.join(settings.TEMP_DIR, f"audio_{bitrate}_{uuid.uuid4().hex[:8]}.m4a")
-            cmd = [
-                "ffmpeg",
-                "-y",
-                "-nostats",
-                "-vn",
-                "-sn",
-                "-dn",
-                "-i", video_path,
-                "-ar", "16000",
-                "-ac", "1",
-                "-af", speech_filter,
-                "-c:a", "aac",
-                "-b:a", bitrate,
-                temp_audio,
-            ]
-            try:
-                res = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
-                if res.returncode == 0 and os.path.exists(temp_audio):
-                    size = os.path.getsize(temp_audio)
-                    if 1000 < size < 24 * 1024 * 1024:
-                        logger.info(f"Extracted speech-cleaned cloud audio ({bitrate}, {size} bytes)")
-                        return temp_audio
-                    # File exceeded 24MB limit; remove and retry at lower bitrate
-                    os.remove(temp_audio)
-            except Exception as e:
-                logger.warning(f"Speech-cleaned cloud encode ({bitrate}) error: {e}")
-                if os.path.exists(temp_audio):
-                    try:
-                        os.remove(temp_audio)
-                    except Exception:
-                        pass
-
-        # Fallback: direct stream copy if filtered encode failed
+        # 1. Try instant audio stream copy FIRST (~1s, ~0% CPU on Render's 0.1 CPU)
         temp_copy = os.path.join(settings.TEMP_DIR, f"audio_copy_{uuid.uuid4().hex[:8]}.m4a")
         cmd_copy = [
             "ffmpeg", "-y", "-nostats", "-vn", "-sn", "-dn",
             "-i", video_path, "-c:a", "copy", temp_copy,
         ]
         try:
-            res_copy = subprocess.run(cmd_copy, capture_output=True, text=True, timeout=180)
+            res_copy = subprocess.run(cmd_copy, capture_output=True, text=True, timeout=120)
             if (
                 res_copy.returncode == 0
                 and os.path.exists(temp_copy)
                 and 1000 < os.path.getsize(temp_copy) < 24 * 1024 * 1024
             ):
-                logger.info(f"Fallback audio stream copy succeeded ({os.path.getsize(temp_copy)} bytes)")
+                logger.info(f"Instant audio stream copy succeeded ({os.path.getsize(temp_copy)} bytes)")
                 return temp_copy
         except Exception as e:
-            logger.warning(f"Audio stream copy fallback failed: {e}")
+            logger.warning(f"Audio stream copy skipped ({e}), falling back to compact encode...")
         if os.path.exists(temp_copy):
             try:
                 os.remove(temp_copy)
             except Exception:
                 pass
+
+        # 2. Fallback: compact 16kHz mono AAC (skip heavy dynaudnorm on Render's 0.1 CPU)
+        is_render_cloud = bool(os.environ.get("RENDER"))
+        temp_audio = os.path.join(settings.TEMP_DIR, f"audio_24k_{uuid.uuid4().hex[:8]}.m4a")
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-nostats",
+            "-vn",
+            "-sn",
+            "-dn",
+            "-i", video_path,
+            "-ar", "16000",
+            "-ac", "1",
+        ]
+        if not is_render_cloud:
+            cmd.extend(["-af", speech_filter])
+        cmd.extend(["-c:a", "aac", "-b:a", "24k", temp_audio])
+
+        try:
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+            if res.returncode == 0 and os.path.exists(temp_audio):
+                size = os.path.getsize(temp_audio)
+                if 1000 < size < 24 * 1024 * 1024:
+                    logger.info(f"Extracted compact cloud audio (24k, {size} bytes)")
+                    return temp_audio
+                os.remove(temp_audio)
+        except Exception as e:
+            logger.warning(f"Compact cloud audio encode error: {e}")
+            if os.path.exists(temp_audio):
+                try:
+                    os.remove(temp_audio)
+                except Exception:
+                    pass
+
         return video_path
 
     # Local faster-whisper WAV extraction (16kHz mono PCM with speech clarity filter)
@@ -463,6 +462,7 @@ def transcribe_video(video_path: str, groq_api_key: Optional[str] = None) -> dic
             pass
 
     # 1. Try Groq Cloud Whisper-Large-V3 first (0% local CPU/RAM, highest accuracy)
+    groq_error = None
     if effective_groq_key:
         audio_source = _extract_audio_for_transcription(video_path, for_cloud=True)
         is_temp = audio_source != video_path
@@ -476,6 +476,7 @@ def transcribe_video(video_path: str, groq_api_key: Optional[str] = None) -> dic
                     pass
             return result
         except Exception as e:
+            groq_error = str(e)
             logger.warning(f"Groq Cloud transcription failed ({e}), falling back to local Whisper...")
         finally:
             if is_temp and os.path.exists(audio_source):
@@ -489,6 +490,8 @@ def transcribe_video(video_path: str, groq_api_key: Optional[str] = None) -> dic
     try:
         model = _get_model()
     except ImportError:
+        if groq_error:
+            raise RuntimeError(f"Groq Cloud transcription failed: {groq_error}")
         raise RuntimeError(
             "Cloud mode requires a free Groq API Key (console.groq.com/keys) in Settings -> Groq Whisper Key, "
             "because local faster-whisper is not installed on this lightweight cloud server."
