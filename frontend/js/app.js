@@ -204,21 +204,51 @@ async function init() {
 
 function initScrollReveal() {
     const targets = document.querySelectorAll('.scroll-reveal, .scroll-reveal-left, .scroll-reveal-right');
-    if (!('IntersectionObserver' in window)) {
+    const progressBar = document.getElementById('scroll-progress-bar');
+
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    } else if (entry.boundingClientRect.top > 40) {
+                        // Reset when scrolled back up so scrolling down always animates fresh
+                        entry.target.classList.remove('is-visible');
+                    }
+                });
+            },
+            { threshold: 0.1, rootMargin: '0px 0px -30px 0px' }
+        );
+        targets.forEach((el) => observer.observe(el));
+    } else {
         targets.forEach((el) => el.classList.add('is-visible'));
-        return;
     }
-    const observer = new IntersectionObserver(
-        (entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('is-visible');
+
+    // Continuous scroll-linked progress bar & subtle 3D parallax float
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const pct = docHeight > 0 ? Math.min(100, Math.max(0, (window.scrollY / docHeight) * 100)) : 0;
+                if (progressBar) {
+                    progressBar.style.width = `${pct}%`;
                 }
+                const vh = window.innerHeight || 800;
+                targets.forEach((el) => {
+                    if (el.classList.contains('is-visible')) {
+                        const rect = el.getBoundingClientRect();
+                        const centerOffset = ((rect.top + rect.height * 0.5) - vh * 0.5) / vh;
+                        const shift = Math.max(-14, Math.min(14, centerOffset * -18));
+                        el.style.setProperty('--parallax-y', `${shift.toFixed(1)}px`);
+                    }
+                });
+                ticking = false;
             });
-        },
-        { threshold: 0.14, rootMargin: '0px 0px -40px 0px' }
-    );
-    targets.forEach((el) => observer.observe(el));
+            ticking = true;
+        }
+    }, { passive: true });
 }
 
 // ─── Landing Page, Auth & Credits ────────────────────────────────────────────

@@ -40,16 +40,19 @@
             }
         }
     </script>
-    <link rel="stylesheet" href="css/styles.css?v=2.7">
+    <link rel="stylesheet" href="css/styles.css?v=2.8">
 </head>
 <body class="bg-dark-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-rose-500/30 selection:text-white">
+
+    <!-- Top Neon Scroll Progress Bar -->
+    <div id="scroll-progress-bar" aria-hidden="true"></div>
 
     <!-- Toast Notifications -->
     <div id="toast-container" class="fixed top-20 right-5 z-[70] flex flex-col gap-2.5" aria-live="polite"></div>
 
     <!-- Full-Width Sticky Studio Navbar (clean 3-zone layout with breathing room) -->
     <header class="sticky top-0 z-50 w-full studio-navbar backdrop-blur-xl bg-dark-950/85 border-b border-white/10">
-        <div class="w-full max-w-[1680px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-20 h-16 flex items-center justify-between gap-6">
+        <div class="fluid-shell h-16 flex items-center justify-between gap-6">
             <!-- Left: Brand Logo -->
             <a href="#" id="brand-home-link" class="flex items-center gap-3 group cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded-xl">
                 <div class="w-9 h-9 rounded-xl bg-rose-600 flex items-center justify-center border border-rose-400/40 shadow-md shadow-rose-600/20">
@@ -129,7 +132,7 @@
     <div id="landing-page-view" class="relative z-0 isolate flex-1 w-full landing-backdrop overflow-x-hidden">
 
         <!-- 1. Split Asymmetric Hero + Live Visual Studio Stage -->
-        <section class="w-full max-w-[1680px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-20 pt-12 pb-16 sm:pt-20 sm:pb-24">
+        <section class="fluid-shell min-h-[calc(100vh-4rem)] py-12 sm:py-16 flex flex-col justify-center gap-12">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
                 <!-- Left Column: Copy, CTAs & Avatar Social Proof -->
                 <div class="lg:col-span-6 space-y-7 text-center lg:text-left scroll-reveal-left">
@@ -277,6 +280,14 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Animated Scroll Down Cue -->
+            <a href="#section-how-it-works" class="mx-auto inline-flex flex-col items-center gap-2 text-xs font-mono text-slate-400 hover:text-rose-400 transition-colors cursor-pointer pt-4">
+                <span class="uppercase tracking-widest text-[10px]">Scroll to Explore</span>
+                <div class="w-6 h-10 rounded-full border-2 border-white/20 flex items-start justify-center p-1.5">
+                    <span class="w-1.5 h-2.5 rounded-full bg-rose-500 animate-bounce"></span>
+                </div>
+            </a>
         </section>
 
         <!-- 2. Full-Width Infinite Marquee Ticker Band -->
@@ -299,7 +310,7 @@
         </div>
 
         <!-- 3. How It Works: Visual UI Widget Showcases (Scroll-Triggered) -->
-        <section id="section-how-it-works" class="w-full max-w-[1680px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-20 py-20 sm:py-28 space-y-14">
+        <section id="section-how-it-works" class="fluid-shell py-20 sm:py-28 space-y-14">
             <div class="text-center max-w-2xl mx-auto space-y-3 scroll-reveal">
                 <span class="inline-block px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-[11px] font-mono uppercase tracking-widest text-rose-400 font-bold">01 • Automated Pipeline</span>
                 <h3 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">How It Works</h3>
@@ -392,7 +403,7 @@
 
         <!-- 4. Full-Bleed Contrast Band: Recent Users & Viral Results (Scroll-Animated Bars) -->
         <section id="section-creator-results" class="section-band py-20 sm:py-28">
-            <div class="w-full max-w-[1680px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-20 space-y-14">
+            <div class="fluid-shell space-y-14">
                 <div class="text-center max-w-2xl mx-auto space-y-3 scroll-reveal">
                     <span class="inline-block px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-bold">02 • Proven Creator Results</span>
                     <h3 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Recent Clips That Went Viral</h3>
@@ -519,7 +530,7 @@
         </section>
 
         <!-- 5. Credits & Bottom Discord Support / Payment Hub -->
-        <section id="discord-support-section" class="w-full max-w-[1680px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-20 py-20 sm:py-28 space-y-14">
+        <section id="discord-support-section" class="fluid-shell py-20 sm:py-28 space-y-14">
             <div class="text-center max-w-2xl mx-auto space-y-3 scroll-reveal">
                 <span class="inline-block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-[11px] font-mono uppercase tracking-widest text-amber-400 font-bold">03 • Fair Credit System</span>
                 <h3 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">1 Credit = 1 Minute of Video</h3>
@@ -570,7 +581,7 @@
     </div>
 
     <!-- Main Studio Container (isolated in z-0 so scrolled cards/videos never overlap the navbar) -->
-    <main id="studio-main-view" class="hidden relative z-0 isolate flex-1 w-full max-w-[1680px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-20 py-6 sm:py-10 w-full flex-col justify-center">
+    <main id="studio-main-view" class="hidden relative z-0 isolate flex-1 fluid-shell py-6 sm:py-10 w-full flex-col justify-center">
 
         <!-- Preview Mode Notice Banner (Shown in Studio when not logged in) -->
         <div id="preview-mode-banner" class="mb-6 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
@@ -1237,12 +1248,12 @@
 
     <!-- Footer -->
     <footer class="border-t border-white/5 py-5 text-center text-xs text-slate-500">
-        <div class="w-full max-w-[1680px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-20 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div class="fluid-shell flex flex-col sm:flex-row items-center justify-between gap-2">
             <span class="font-semibold text-slate-400">ViralClipper Pro Studio</span>
             <span>Credit-Based AI Viral Clipper • Support &amp; Payments via Discord (Coming Soon)</span>
         </div>
     </footer>
 
-    <script src="js/app.js?v=3.2"></script>
+    <script src="js/app.js?v=3.3"></script>
 </body>
 </html>
