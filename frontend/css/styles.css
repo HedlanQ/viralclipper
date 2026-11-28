@@ -84,102 +84,138 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ─── Landing Page Section Panels, Linings & Animations ─── */
+/* ─── UI/UX Pro Max: OpusClip / Linear Dark Studio Landing System ─── */
 
-.section-panel {
+/* Architectural dot/grid background + ambient aurora mesh */
+.landing-backdrop {
     position: relative;
-    background: linear-gradient(180deg, rgba(22, 22, 38, 0.78) 0%, rgba(13, 13, 22, 0.95) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    border-radius: 32px;
-    overflow: hidden;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    background-image:
+        radial-gradient(at 15% 8%, rgba(225, 29, 72, 0.14) 0px, transparent 45%),
+        radial-gradient(at 85% 22%, rgba(99, 102, 241, 0.14) 0px, transparent 48%),
+        radial-gradient(at 50% 75%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+    background-position: center top;
 }
 
-.section-panel::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 12%;
-    right: 12%;
-    height: 2px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, transparent, rgba(225, 29, 72, 0.85), rgba(99, 102, 241, 0.85), transparent);
-}
-
-.section-panel-emerald::before {
-    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.85), rgba(99, 102, 241, 0.65), transparent);
-}
-
-.section-panel-amber::before {
-    background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.85), rgba(225, 29, 72, 0.75), transparent);
-}
-
-/* Glowing section separator line between panels */
-.section-divider {
+/* Infinite horizontal marquee ticker */
+.marquee-track {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    width: 100%;
-    max-width: 680px;
-    margin: 0 auto;
+    width: max-content;
+    animation: marqueeScroll 28s linear infinite;
 }
 
-.section-divider-line {
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+.marquee-track:hover {
+    animation-play-state: paused;
 }
 
-.section-divider-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 9999px;
-    background-color: #E11D48;
-    box-shadow: 0 0 12px rgba(225, 29, 72, 0.85);
+@keyframes marqueeScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
 }
 
-/* Interactive card lift & glow animation */
+/* Animated audio waveform bars inside visual mockups */
+.wave-bar {
+    width: 4px;
+    border-radius: 999px;
+    animation: wavePulse 1.4s ease-in-out infinite;
+}
+
+@keyframes wavePulse {
+    0%, 100% { transform: scaleY(0.45); opacity: 0.6; }
+    50% { transform: scaleY(1); opacity: 1; }
+}
+
+/* Full-bleed alternating section bands */
+.section-band {
+    position: relative;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    background: linear-gradient(180deg, rgba(16, 16, 28, 0.85) 0%, rgba(9, 9, 15, 0.96) 100%);
+}
+
+/* Glass visual mockup cards */
+.glass-stage {
+    background: linear-gradient(145deg, rgba(24, 24, 40, 0.85) 0%, rgba(12, 12, 20, 0.95) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 28px 70px -15px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Interactive card lift & glow animation (stable layout, no jitter) */
 .hover-lift {
-    transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), border-color 280ms ease, box-shadow 280ms ease;
+    transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), border-color 250ms ease, box-shadow 300ms ease;
 }
 
 .hover-lift:hover {
     transform: translateY(-6px);
-    border-color: rgba(225, 29, 72, 0.5) !important;
-    box-shadow: 0 18px 38px -10px rgba(225, 29, 72, 0.18), 0 10px 24px rgba(0, 0, 0, 0.5);
+    border-color: rgba(225, 29, 72, 0.55) !important;
+    box-shadow: 0 22px 44px -12px rgba(225, 29, 72, 0.22), 0 12px 28px rgba(0, 0, 0, 0.6);
 }
 
-/* Staggered reveal animations */
-.anim-reveal {
+/* ─── True Scroll-Triggered Animations (IntersectionObserver) ─── */
+
+.scroll-reveal {
     opacity: 0;
-    animation: revealUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform: translateY(42px) scale(0.97);
+    filter: blur(6px);
+    transition:
+        opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform, filter;
 }
 
-.delay-1 { animation-delay: 0.1s; }
-.delay-2 { animation-delay: 0.2s; }
-.delay-3 { animation-delay: 0.3s; }
-.delay-4 { animation-delay: 0.4s; }
-
-@keyframes revealUp {
-    from {
-        opacity: 0;
-        transform: translateY(22px) scale(0.985);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+.scroll-reveal-left {
+    opacity: 0;
+    transform: translateX(-44px) scale(0.98);
+    filter: blur(5px);
+    transition:
+        opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Subtle floating animation for hero badge */
+.scroll-reveal-right {
+    opacity: 0;
+    transform: translateX(44px) scale(0.98);
+    filter: blur(5px);
+    transition:
+        opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-reveal.is-visible,
+.scroll-reveal-left.is-visible,
+.scroll-reveal-right.is-visible {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+    filter: blur(0);
+}
+
+.stagger-1 { transition-delay: 80ms; }
+.stagger-2 { transition-delay: 180ms; }
+.stagger-3 { transition-delay: 280ms; }
+
+/* Animated fill bar when scrolled into view */
+.scroll-bar-fill {
+    width: 0%;
+    transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.25s;
+}
+
+.is-visible .scroll-bar-fill {
+    width: var(--target-width, 95%);
+}
+
+/* Subtle floating animation for hero elements */
 .anim-float {
-    animation: gentleFloat 4s ease-in-out infinite;
+    animation: gentleFloat 4.5s ease-in-out infinite;
 }
 
 @keyframes gentleFloat {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+    50% { transform: translateY(-7px); }
 }
 
 /* Clip card styles */

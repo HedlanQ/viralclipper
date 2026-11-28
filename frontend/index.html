@@ -40,7 +40,7 @@
             }
         }
     </script>
-    <link rel="stylesheet" href="css/styles.css?v=2.6">
+    <link rel="stylesheet" href="css/styles.css?v=2.7">
 </head>
 <body class="bg-dark-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-rose-500/30 selection:text-white">
 
@@ -127,180 +127,440 @@
         </div>
     </header>
 
-    <!-- ═══ Landing Page View (Shown first to visitors) ═══ -->
-    <div id="landing-page-view" class="relative z-0 isolate flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 w-full space-y-12 sm:space-y-16">
-        <!-- Hero Panel -->
-        <section class="section-panel p-8 sm:p-14 text-center space-y-7 anim-reveal">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold rounded-full anim-float">
-                <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
-                <span>AI VIRAL CLIP STUDIO</span>
-            </div>
-            <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.1] max-w-3xl mx-auto">
-                Long Videos Into <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-rose-400 to-indigo-400">Viral Clips</span> in Seconds
-            </h2>
-            <p class="text-base sm:text-lg text-slate-400 max-w-xl mx-auto leading-relaxed">
-                Drop a stream or podcast. AI finds the best hooks, cuts dead air, and writes viral in-video captions.
-            </p>
-            <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
-                <button id="btn-hero-login" type="button" class="cursor-pointer px-7 py-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl text-sm font-extrabold shadow-xl shadow-rose-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-2">
-                    <span>Login to Studio</span>
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                </button>
-                <button id="btn-hero-preview" type="button" class="cursor-pointer px-7 py-4 bg-dark-800 hover:bg-dark-700 border border-white/15 hover:border-rose-500/40 text-slate-100 rounded-2xl text-sm font-bold transition-all hover:-translate-y-0.5">
-                    Preview Studio
-                </button>
+    <!-- ═══ Landing Page View (OpusClip / Linear Visual Showcase + Scroll Reveal) ═══ -->
+    <div id="landing-page-view" class="relative z-0 isolate flex-1 w-full landing-backdrop overflow-x-hidden">
+
+        <!-- 1. Split Asymmetric Hero + Live Visual Studio Stage -->
+        <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 sm:pt-20 sm:pb-24">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+                <!-- Left Column: Copy, CTAs & Avatar Social Proof -->
+                <div class="lg:col-span-6 space-y-6 text-center lg:text-left scroll-reveal-left">
+                    <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                        <span>AI VIRAL CLIPPING ENGINE • ZERO AUDIO DELAY</span>
+                    </div>
+
+                    <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.06]">
+                        1 Long Video.<br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-rose-400 to-indigo-400">10 Viral Shorts.</span>
+                    </h2>
+
+                    <p class="text-base sm:text-lg text-slate-400 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                        Upload any stream or podcast. AI locks onto 90+ virality moments, slices out dead-air pauses, and generates scroll-stopping in-video hook captions.
+                    </p>
+
+                    <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-1">
+                        <button id="btn-hero-login" type="button" class="cursor-pointer px-7 py-4 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl text-sm font-extrabold shadow-xl shadow-rose-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-2.5">
+                            <span>Login to Studio</span>
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        </button>
+                        <button id="btn-hero-preview" type="button" class="cursor-pointer px-6 py-4 bg-dark-800/90 hover:bg-dark-700 border border-white/15 hover:border-rose-500/40 text-slate-100 rounded-2xl text-sm font-bold transition-all hover:-translate-y-0.5 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            <span>Preview Studio</span>
+                        </button>
+                    </div>
+
+                    <!-- Creator Trust Bar -->
+                    <div class="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs text-slate-400">
+                        <div class="flex -space-x-2.5">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-amber-500 border-2 border-dark-950 flex items-center justify-center text-[10px] font-extrabold text-white">MV</div>
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 border-2 border-dark-950 flex items-center justify-center text-[10px] font-extrabold text-white">ER</div>
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 border-2 border-dark-950 flex items-center justify-center text-[10px] font-extrabold text-white">JK</div>
+                            <div class="w-8 h-8 rounded-full bg-dark-800 border-2 border-dark-950 flex items-center justify-center text-[10px] font-mono font-bold text-rose-300">+2k</div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <div class="flex items-center text-amber-400" aria-label="5 out of 5 stars">
+                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            </div>
+                            <span><strong>2.9M+ views</strong> generated from recent clips</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Interactive Visual Mockup (16:9 Source -> 9:16 Viral Short) -->
+                <div class="lg:col-span-6 scroll-reveal-right">
+                    <div class="glass-stage rounded-3xl p-5 sm:p-6 relative">
+                        <!-- Top Window Controls + Live Virality Score Pill -->
+                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                                <span class="ml-2 text-[11px] font-mono text-slate-400">stream_vod_2hr.mp4 → clip_01.mp4</span>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/35 text-emerald-300 font-mono text-[11px] font-extrabold">
+                                SCORE 98 / 100
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-12 gap-4 items-center">
+                            <!-- Left side inside mockup: Source Waveform & Dead-Air Splicer -->
+                            <div class="col-span-7 space-y-3">
+                                <div class="p-3.5 rounded-2xl bg-dark-950/90 border border-white/10 space-y-2.5">
+                                    <div class="flex items-center justify-between text-[10px] font-mono">
+                                        <span class="text-slate-400">GROQ WHISPER V3</span>
+                                        <span class="text-rose-400 font-bold">00:42:18 – 00:42:46</span>
+                                    </div>
+                                    <!-- Animated Audio Waveform Bars -->
+                                    <div class="h-12 flex items-center justify-between gap-1 px-1">
+                                        <span class="wave-bar h-6 bg-rose-500" style="animation-delay:0.0s"></span>
+                                        <span class="wave-bar h-10 bg-rose-400" style="animation-delay:0.15s"></span>
+                                        <span class="wave-bar h-8 bg-rose-500" style="animation-delay:0.3s"></span>
+                                        <span class="wave-bar h-11 bg-indigo-400" style="animation-delay:0.1s"></span>
+                                        <span class="wave-bar h-5 bg-rose-500" style="animation-delay:0.4s"></span>
+                                        <span class="wave-bar h-2 bg-slate-700"></span>
+                                        <span class="wave-bar h-2 bg-slate-700"></span>
+                                        <span class="wave-bar h-10 bg-emerald-400" style="animation-delay:0.2s"></span>
+                                        <span class="wave-bar h-12 bg-emerald-400" style="animation-delay:0.35s"></span>
+                                        <span class="wave-bar h-7 bg-indigo-400" style="animation-delay:0.05s"></span>
+                                        <span class="wave-bar h-11 bg-rose-500" style="animation-delay:0.25s"></span>
+                                        <span class="wave-bar h-8 bg-rose-400" style="animation-delay:0.45s"></span>
+                                    </div>
+                                    <!-- Spliced Timeline Track -->
+                                    <div class="flex items-center gap-1 text-[9px] font-mono font-bold">
+                                        <div class="flex-1 py-1 px-2 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 truncate">HOOK 14.2s</div>
+                                        <div class="py-1 px-1.5 rounded bg-rose-500/20 border border-rose-500/40 text-rose-300 line-through opacity-75">-3.1s AIR</div>
+                                        <div class="flex-1 py-1 px-2 rounded bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 truncate">PAYOFF 13.8s</div>
+                                    </div>
+                                </div>
+
+                                <!-- In-Video Caption Selector Preview -->
+                                <div class="p-3.5 rounded-2xl bg-dark-950/90 border border-white/10 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[10px] font-mono font-bold text-indigo-400 uppercase">★ Master Hook Caption</span>
+                                        <span class="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[9px] font-bold">Best Pick</span>
+                                    </div>
+                                    <p class="text-xs font-bold text-white leading-snug">
+                                        "POV: He didn't realize the mic was still live"
+                                    </p>
+                                    <div class="flex flex-wrap gap-1 pt-0.5">
+                                        <span class="px-2 py-0.5 rounded-md bg-rose-600 text-white text-[9px] font-bold">POV</span>
+                                        <span class="px-2 py-0.5 rounded-md bg-dark-800 text-slate-400 text-[9px] font-semibold">First Person</span>
+                                        <span class="px-2 py-0.5 rounded-md bg-dark-800 text-slate-400 text-[9px] font-semibold">Shorter</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right side inside mockup: 9:16 Vertical Phone Preview Frame -->
+                            <div class="col-span-5">
+                                <div class="aspect-[9/16] rounded-2xl bg-gradient-to-b from-indigo-950 via-dark-900 to-rose-950/80 border-2 border-white/15 p-3 flex flex-col justify-between relative overflow-hidden shadow-2xl anim-float">
+                                    <!-- Top In-Video Burnt Hook Pill -->
+                                    <div class="bg-black/80 backdrop-blur-md border border-white/20 rounded-xl p-2 text-center shadow-lg">
+                                        <p class="text-[10px] font-extrabold text-white leading-tight">
+                                            POV: He didn't realize the mic was still live
+                                        </p>
+                                    </div>
+
+                                    <!-- Center Visual Speaker Pulse -->
+                                    <div class="my-auto flex flex-col items-center gap-2">
+                                        <div class="w-12 h-12 rounded-full bg-rose-500/20 border border-rose-400/50 flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-rose-400" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-full bg-black/60 text-[9px] font-mono text-emerald-300 border border-emerald-500/30">0.00s Sync</span>
+                                    </div>
+
+                                    <!-- Bottom Subtitle & Platform Badges -->
+                                    <div class="space-y-1.5">
+                                        <div class="bg-amber-400 text-dark-950 font-extrabold text-[10px] text-center py-0.5 px-2 rounded uppercase tracking-wide">
+                                            "WAIT FOR THE ENDING"
+                                        </div>
+                                        <div class="flex items-center justify-between text-[9px] font-mono text-slate-300 px-1">
+                                            <span>0:28</span>
+                                            <span class="text-rose-400 font-bold">1.4M Views</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- Glowing Section Divider -->
-        <div class="section-divider" aria-hidden="true">
-            <div class="section-divider-line"></div>
-            <span class="px-3 py-1 rounded-full bg-dark-900 border border-white/10 text-[10px] font-mono uppercase tracking-widest text-rose-400">01 • Workflow</span>
-            <div class="section-divider-line"></div>
+        <!-- 2. Full-Width Infinite Marquee Ticker Band -->
+        <div class="w-full bg-dark-900/90 border-y border-white/10 py-3.5 overflow-hidden">
+            <div class="marquee-track items-center gap-10 text-xs font-mono font-semibold text-slate-300">
+                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-500"></span> 0.6s Keyframe Stream-Copy Cut</span>
+                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-400"></span> Groq Cloud Whisper V3</span>
+                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> 99.9% Audio &amp; End-Tail Sync</span>
+                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-400"></span> 1 Credit = 1 Min of Source Video</span>
+                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Master In-Video Hook Captions</span>
+                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-400"></span> Dead-Air Pause Excision</span>
+                <!-- Duplicate set for seamless loop -->
+                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-500"></span> 0.6s Keyframe Stream-Copy Cut</span>
+                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-400"></span> Groq Cloud Whisper V3</span>
+                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> 99.9% Audio &amp; End-Tail Sync</span>
+                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-400"></span> 1 Credit = 1 Min of Source Video</span>
+                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Master In-Video Hook Captions</span>
+                <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-400"></span> Dead-Air Pause Excision</span>
+            </div>
         </div>
 
-        <!-- How It Works Panel -->
-        <section class="section-panel p-8 sm:p-12 space-y-10 anim-reveal delay-1">
-            <div class="text-center space-y-2 pb-4 border-b border-white/10">
-                <span class="text-xs font-mono uppercase tracking-widest text-rose-400 font-bold">How It Works</span>
-                <h3 class="text-2xl sm:text-4xl font-extrabold text-white">3 Simple Steps</h3>
+        <!-- 3. How It Works: Visual UI Widget Showcases (Scroll-Triggered) -->
+        <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 space-y-14">
+            <div class="text-center max-w-2xl mx-auto space-y-3 scroll-reveal">
+                <span class="inline-block px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-[11px] font-mono uppercase tracking-widest text-rose-400 font-bold">01 • Automated Pipeline</span>
+                <h3 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">How It Works</h3>
+                <p class="text-sm sm:text-base text-slate-400">Three zero-lag stages from raw VOD to viral short.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-7">
-                <div class="bento-card hover-lift rounded-3xl p-7 space-y-4 bg-dark-950/80 border border-white/10">
-                    <div class="w-11 h-11 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 font-mono font-bold text-sm flex items-center justify-center">01</div>
-                    <h4 class="text-lg font-bold text-white">Upload Video</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Drop any MP4 or MOV up to 2GB. Transcribed in seconds with Groq Whisper V3.
-                    </p>
+                <!-- Step 1 Visual Card -->
+                <div class="glass-stage hover-lift rounded-3xl p-6 flex flex-col justify-between space-y-6 scroll-reveal stagger-1">
+                    <!-- Mini Visual Widget -->
+                    <div class="p-4 rounded-2xl bg-dark-950/90 border border-white/10 space-y-3">
+                        <div class="flex items-center justify-between text-[10px] font-mono">
+                            <span class="text-rose-400 font-bold">STEP 01</span>
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300">2GB Max • Chunked</span>
+                        </div>
+                        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-dark-900 border border-white/5">
+                            <div class="w-9 h-9 rounded-lg bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="text-xs font-bold text-white truncate">podcast_ep44_raw.mp4</div>
+                                <div class="text-[10px] font-mono text-emerald-400">Transcribed in 3.2s</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="text-lg font-extrabold text-white">Drop Your Long Video</h4>
+                        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                            Instant 10-minute audio stream chunking transcribes hour-long videos on Groq Whisper V3 without CPU lag.
+                        </p>
+                    </div>
                 </div>
-                <div class="bento-card hover-lift rounded-3xl p-7 space-y-4 bg-dark-950/80 border border-white/10">
-                    <div class="w-11 h-11 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 font-mono font-bold text-sm flex items-center justify-center">02</div>
-                    <h4 class="text-lg font-bold text-white">AI Cuts &amp; Scores</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Picks top viral moments (0–100) and removes awkward pauses automatically.
-                    </p>
+
+                <!-- Step 2 Visual Card -->
+                <div class="glass-stage hover-lift rounded-3xl p-6 flex flex-col justify-between space-y-6 scroll-reveal stagger-2">
+                    <!-- Mini Visual Widget -->
+                    <div class="p-4 rounded-2xl bg-dark-950/90 border border-white/10 space-y-3">
+                        <div class="flex items-center justify-between text-[10px] font-mono">
+                            <span class="text-indigo-400 font-bold">STEP 02</span>
+                            <span class="px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300">Keyframe-Locked</span>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between text-[10px] font-mono text-slate-300">
+                                <span>Hook Retention Score</span>
+                                <span class="text-emerald-400 font-bold">96 / 100</span>
+                            </div>
+                            <div class="h-2 rounded-full bg-dark-800 overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 scroll-bar-fill" style="--target-width: 96%"></div>
+                            </div>
+                            <div class="pt-1 flex items-center gap-1.5 text-[10px] font-mono text-rose-300">
+                                <svg class="w-3.5 h-3.5 text-rose-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/></svg>
+                                <span>Dead air spliced • +0.85s tail buffer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="text-lg font-extrabold text-white">AI Hook &amp; Dead-Air Cut</h4>
+                        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                            Ranks your highest-retention 20–40s clips and cuts awkward pauses while keeping natural sentence endings intact.
+                        </p>
+                    </div>
                 </div>
-                <div class="bento-card hover-lift rounded-3xl p-7 space-y-4 bg-dark-950/80 border border-white/10">
-                    <div class="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono font-bold text-sm flex items-center justify-center">03</div>
-                    <h4 class="text-lg font-bold text-white">Export with Captions</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Copy viral hook captions and download ready-to-post clips in one click.
-                    </p>
+
+                <!-- Step 3 Visual Card -->
+                <div class="glass-stage hover-lift rounded-3xl p-6 flex flex-col justify-between space-y-6 scroll-reveal stagger-3">
+                    <!-- Mini Visual Widget -->
+                    <div class="p-4 rounded-2xl bg-dark-950/90 border border-white/10 space-y-2.5">
+                        <div class="flex items-center justify-between text-[10px] font-mono">
+                            <span class="text-emerald-400 font-bold">STEP 03</span>
+                            <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300">10 Hook Options</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-dark-900 border border-rose-500/30 text-xs font-bold text-white">
+                            "Bro accidentally exposed the whole industry"
+                        </div>
+                        <div class="flex gap-1.5 text-[9px] font-mono">
+                            <span class="px-2 py-0.5 rounded bg-rose-600 text-white font-bold">POV</span>
+                            <span class="px-2 py-0.5 rounded bg-dark-800 text-slate-300">First Person</span>
+                            <span class="px-2 py-0.5 rounded bg-dark-800 text-slate-300">Shorter</span>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="text-lg font-extrabold text-white">Viral Captions &amp; Export</h4>
+                        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                            Refine in-video captions in one click and download instant MP4 clips ready for TikTok, Reels, and Shorts.
+                        </p>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Glowing Section Divider -->
-        <div class="section-divider" aria-hidden="true">
-            <div class="section-divider-line"></div>
-            <span class="px-3 py-1 rounded-full bg-dark-900 border border-white/10 text-[10px] font-mono uppercase tracking-widest text-emerald-400">02 • Proof</span>
-            <div class="section-divider-line"></div>
-        </div>
-
-        <!-- Recent Users, Viral Results & Creator Feedbacks Panel -->
-        <section class="section-panel section-panel-emerald p-8 sm:p-12 space-y-10 anim-reveal delay-2">
-            <div class="text-center space-y-2 pb-4 border-b border-white/10">
-                <span class="text-xs font-mono uppercase tracking-widest text-emerald-400 font-bold">Creator Results</span>
-                <h3 class="text-2xl sm:text-4xl font-extrabold text-white">Recent Viral Clips &amp; Feedback</h3>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-7">
-                <div class="bento-card hover-lift rounded-3xl p-7 flex flex-col justify-between space-y-6 bg-dark-950/80 border border-white/10">
-                    <div class="space-y-4">
-                        <span class="inline-block px-3 py-1 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 font-mono text-xs font-bold">🔥 1.4M TikTok Views</span>
-                        <p class="text-sm text-slate-200 leading-relaxed">
-                            "Clipped a 2-hour gaming stream in 1 minute. The POV caption hook held 84% retention."
-                        </p>
-                    </div>
-                    <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs">
-                        <div>
-                            <div class="font-bold text-white">Marcus V.</div>
-                            <div class="text-slate-400">Twitch Streamer</div>
-                        </div>
-                        <span class="text-amber-400">★★★★★</span>
-                    </div>
+        <!-- 4. Full-Bleed Contrast Band: Recent Users & Viral Results (Scroll-Animated Bars) -->
+        <section class="section-band py-20 sm:py-28">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
+                <div class="text-center max-w-2xl mx-auto space-y-3 scroll-reveal">
+                    <span class="inline-block px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-bold">02 • Proven Creator Results</span>
+                    <h3 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Recent Clips That Went Viral</h3>
+                    <p class="text-sm sm:text-base text-slate-400">How creators turned long streams and podcasts into million-view shorts.</p>
                 </div>
 
-                <div class="bento-card hover-lift rounded-3xl p-7 flex flex-col justify-between space-y-6 bg-dark-950/80 border border-white/10">
-                    <div class="space-y-4">
-                        <span class="inline-block px-3 py-1 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-mono text-xs font-bold">🚀 620K Reels Views</span>
-                        <p class="text-sm text-slate-200 leading-relaxed">
-                            "Found a 30-second podcast moment I missed. That single clip gained 11K followers."
-                        </p>
-                    </div>
-                    <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs">
-                        <div>
-                            <div class="font-bold text-white">Elena R.</div>
-                            <div class="text-slate-400">Podcast Host</div>
-                        </div>
-                        <span class="text-amber-400">★★★★★</span>
-                    </div>
-                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-7">
+                    <!-- Creator Card 1: TikTok -->
+                    <div class="glass-stage hover-lift rounded-3xl p-7 flex flex-col justify-between space-y-6 scroll-reveal stagger-1">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 font-mono text-xs font-extrabold">
+                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
+                                    <span>1.4M TikTok Views</span>
+                                </span>
+                                <span class="text-xs font-mono font-bold text-emerald-400">97/100</span>
+                            </div>
 
-                <div class="bento-card hover-lift rounded-3xl p-7 flex flex-col justify-between space-y-6 bg-dark-950/80 border border-white/10">
-                    <div class="space-y-4">
-                        <span class="inline-block px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono text-xs font-bold">⚡ 890K YT Shorts</span>
-                        <p class="text-sm text-slate-200 leading-relaxed">
-                            "Zero audio delay, clean endings, and we now clip 20 client videos a day."
-                        </p>
-                    </div>
-                    <div class="pt-4 border-t border-white/10 flex items-center justify-between text-xs">
-                        <div>
-                            <div class="font-bold text-white">Jayden K.</div>
-                            <div class="text-slate-400">Clip Agency</div>
+                            <!-- Scroll-Animated Retention Bar -->
+                            <div class="p-3 rounded-xl bg-dark-950/80 border border-white/5 space-y-1.5">
+                                <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                                    <span>2h Stream → 28s Clip</span>
+                                    <span class="text-rose-400 font-bold">84% 3s Retention</span>
+                                </div>
+                                <div class="h-1.5 rounded-full bg-dark-800 overflow-hidden">
+                                    <div class="h-full bg-rose-500 scroll-bar-fill" style="--target-width: 97%"></div>
+                                </div>
+                            </div>
+
+                            <p class="text-sm text-slate-200 leading-relaxed">
+                                "Clipped my 2-hour gaming stream in 60 seconds. The POV in-video caption hook kept 84% of viewers past the first 3 seconds."
+                            </p>
                         </div>
-                        <span class="text-amber-400">★★★★★</span>
+
+                        <div class="pt-4 border-t border-white/10 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-rose-500 to-amber-500 flex items-center justify-center text-xs font-extrabold text-white">MV</div>
+                                <div>
+                                    <div class="text-xs font-bold text-white">Marcus V.</div>
+                                    <div class="text-[11px] text-slate-400">@marcus_streams • Twitch</div>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-mono text-[10px] font-bold">Verified</span>
+                        </div>
+                    </div>
+
+                    <!-- Creator Card 2: Reels -->
+                    <div class="glass-stage hover-lift rounded-3xl p-7 flex flex-col justify-between space-y-6 scroll-reveal stagger-2">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-mono text-xs font-extrabold">
+                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                                    <span>620K Reels Views</span>
+                                </span>
+                                <span class="text-xs font-mono font-bold text-emerald-400">95/100</span>
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-dark-950/80 border border-white/5 space-y-1.5">
+                                <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                                    <span>58m Podcast → 34s Clip</span>
+                                    <span class="text-indigo-400 font-bold">+11K Followers</span>
+                                </div>
+                                <div class="h-1.5 rounded-full bg-dark-800 overflow-hidden">
+                                    <div class="h-full bg-indigo-500 scroll-bar-fill" style="--target-width: 95%"></div>
+                                </div>
+                            </div>
+
+                            <p class="text-sm text-slate-200 leading-relaxed">
+                                "It caught a 34-second founder debate at minute 52 that I completely missed. That single clip brought 11,000 new followers."
+                            </p>
+                        </div>
+
+                        <div class="pt-4 border-t border-white/10 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center text-xs font-extrabold text-white">ER</div>
+                                <div>
+                                    <div class="text-xs font-bold text-white">Elena R.</div>
+                                    <div class="text-[11px] text-slate-400">@elenapodcasts • Host</div>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-mono text-[10px] font-bold">Verified</span>
+                        </div>
+                    </div>
+
+                    <!-- Creator Card 3: YouTube Shorts -->
+                    <div class="glass-stage hover-lift rounded-3xl p-7 flex flex-col justify-between space-y-6 scroll-reveal stagger-3">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono text-xs font-extrabold">
+                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                    <span>890K YT Shorts</span>
+                                </span>
+                                <span class="text-xs font-mono font-bold text-emerald-400">96/100</span>
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-dark-950/80 border border-white/5 space-y-1.5">
+                                <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                                    <span>20 Client Videos / Day</span>
+                                    <span class="text-amber-400 font-bold">0.00s Audio Sync</span>
+                                </div>
+                                <div class="h-1.5 rounded-full bg-dark-800 overflow-hidden">
+                                    <div class="h-full bg-amber-400 scroll-bar-fill" style="--target-width: 96%"></div>
+                                </div>
+                            </div>
+
+                            <p class="text-sm text-slate-200 leading-relaxed">
+                                "Zero audio delay, clean sentence endings, and the 1-credit-per-minute model lets our agency batch-clip 20 client videos a day."
+                            </p>
+                        </div>
+
+                        <div class="pt-4 border-t border-white/10 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center text-xs font-extrabold text-white">JK</div>
+                                <div>
+                                    <div class="text-xs font-bold text-white">Jayden K.</div>
+                                    <div class="text-[11px] text-slate-400">@jaydenclips • Agency</div>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-mono text-[10px] font-bold">Verified</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Glowing Section Divider -->
-        <div class="section-divider" aria-hidden="true">
-            <div class="section-divider-line"></div>
-            <span class="px-3 py-1 rounded-full bg-dark-900 border border-white/10 text-[10px] font-mono uppercase tracking-widest text-amber-400">03 • Access &amp; Support</span>
-            <div class="section-divider-line"></div>
-        </div>
-
-        <!-- Credit Packs & Bottom Discord Support / Payment Panel -->
-        <section id="discord-support-section" class="section-panel section-panel-amber p-8 sm:p-12 space-y-10 anim-reveal delay-3">
-            <div class="text-center space-y-2 pb-4 border-b border-white/10">
-                <span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold">Credits</span>
-                <h3 class="text-2xl sm:text-4xl font-extrabold text-white">1 Credit = 1 Minute of Video</h3>
+        <!-- 5. Credits & Bottom Discord Support / Payment Hub -->
+        <section id="discord-support-section" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 space-y-14">
+            <div class="text-center max-w-2xl mx-auto space-y-3 scroll-reveal">
+                <span class="inline-block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-[11px] font-mono uppercase tracking-widest text-amber-400 font-bold">03 • Fair Credit System</span>
+                <h3 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">1 Credit = 1 Minute of Video</h3>
+                <p class="text-sm sm:text-base text-slate-400">Credits only deduct when your clips finish generating.</p>
             </div>
 
-            <!-- Credit Pack Tiers Preview -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-7">
-                <div class="bento-card hover-lift rounded-3xl p-7 space-y-3 bg-dark-950/80 border border-white/10 text-center">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Starter</span>
-                    <div class="text-4xl font-extrabold text-white font-mono pt-1">60 Credits</div>
-                    <p class="text-xs text-slate-400">1 Hour of Video</p>
+                <div class="glass-stage hover-lift rounded-3xl p-8 space-y-4 text-center scroll-reveal stagger-1">
+                    <span class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">Starter Pack</span>
+                    <div class="text-4xl sm:text-5xl font-extrabold text-white font-mono">60</div>
+                    <div class="text-xs font-semibold text-amber-300">Credits • 1 Hour of Video</div>
                 </div>
 
-                <div class="bento-card hover-lift rounded-3xl p-7 space-y-3 bg-dark-950/80 border-2 border-rose-500/50 text-center">
-                    <span class="text-xs font-bold text-rose-400 uppercase tracking-wider">Creator • Popular</span>
-                    <div class="text-4xl font-extrabold text-white font-mono pt-1">300 Credits</div>
-                    <p class="text-xs text-slate-400">5 Hours of Video</p>
+                <div class="glass-stage hover-lift rounded-3xl p-8 space-y-4 text-center border-2 border-rose-500/60 relative scroll-reveal stagger-2">
+                    <span class="px-3 py-0.5 rounded-full bg-rose-600 text-white font-mono text-[10px] font-extrabold uppercase">Most Popular</span>
+                    <div class="text-4xl sm:text-5xl font-extrabold text-white font-mono">300</div>
+                    <div class="text-xs font-semibold text-rose-300">Credits • 5 Hours of Video</div>
                 </div>
 
-                <div class="bento-card hover-lift rounded-3xl p-7 space-y-3 bg-dark-950/80 border border-white/10 text-center">
-                    <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Pro Agency</span>
-                    <div class="text-4xl font-extrabold text-white font-mono pt-1">1,000 Credits</div>
-                    <p class="text-xs text-slate-400">16+ Hours of Video</p>
+                <div class="glass-stage hover-lift rounded-3xl p-8 space-y-4 text-center scroll-reveal stagger-3">
+                    <span class="text-xs font-mono font-bold text-indigo-400 uppercase tracking-wider">Pro Agency</span>
+                    <div class="text-4xl sm:text-5xl font-extrabold text-white font-mono">1,000</div>
+                    <div class="text-xs font-semibold text-indigo-300">Credits • 16+ Hours of Video</div>
                 </div>
             </div>
 
-            <!-- Very Bottom Discord Support & Payment Banner -->
-            <div class="rounded-3xl p-7 sm:p-9 bg-gradient-to-br from-indigo-600/20 via-dark-950 to-rose-600/15 border border-indigo-500/40 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
-                <div class="space-y-2 text-center md:text-left">
-                    <span class="text-xs font-mono font-bold uppercase tracking-wider text-indigo-300">💬 Support &amp; Payments</span>
-                    <h4 class="text-2xl sm:text-3xl font-extrabold text-white">Need Help or Credits? Join Our Discord</h4>
-                    <p class="text-sm text-slate-300">
-                        Get support and avail credit packages directly in our Discord server.
+            <!-- Official Discord Community, Support & Payment Banner -->
+            <div class="glass-stage rounded-3xl p-8 sm:p-12 bg-gradient-to-br from-indigo-600/25 via-dark-900 to-rose-600/15 border border-indigo-500/45 flex flex-col md:flex-row items-center justify-between gap-8 scroll-reveal">
+                <div class="space-y-3 text-center md:text-left max-w-xl">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/35 text-indigo-300 text-[11px] font-mono font-bold uppercase">
+                        <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                        <span>Official Discord • Support &amp; Credit Payments</span>
+                    </div>
+                    <h4 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">Need Support or Credits?</h4>
+                    <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                        Ask for help, get direct support, and avail your credit packages inside our official Discord community.
                     </p>
                 </div>
-                <button id="btn-join-discord" type="button" class="cursor-pointer px-7 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-sm font-extrabold shadow-xl shadow-indigo-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-3 shrink-0">
+                <button id="btn-join-discord" type="button" class="cursor-pointer px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-sm font-extrabold shadow-2xl shadow-indigo-600/40 transition-all hover:-translate-y-0.5 flex items-center gap-3 shrink-0">
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                         <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
                     </svg>
@@ -985,6 +1245,6 @@
         </div>
     </footer>
 
-    <script src="js/app.js?v=3.0"></script>
+    <script src="js/app.js?v=3.1"></script>
 </body>
 </html>

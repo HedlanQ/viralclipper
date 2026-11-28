@@ -194,9 +194,29 @@ async function init() {
     initDragDrop();
     initEventListeners();
     initAuthListeners();
+    initScrollReveal();
     updateHistoryBadge();
     await initAuthSession();
     await checkBackendHealth();
+}
+
+function initScrollReveal() {
+    const targets = document.querySelectorAll('.scroll-reveal, .scroll-reveal-left, .scroll-reveal-right');
+    if (!('IntersectionObserver' in window)) {
+        targets.forEach((el) => el.classList.add('is-visible'));
+        return;
+    }
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                }
+            });
+        },
+        { threshold: 0.14, rootMargin: '0px 0px -40px 0px' }
+    );
+    targets.forEach((el) => observer.observe(el));
 }
 
 // ─── Landing Page, Auth & Credits ────────────────────────────────────────────
