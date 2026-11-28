@@ -65,21 +65,22 @@ def get_video_codec(video_path: str) -> str:
 
 def _find_nearest_keyframe_time(video_path: str, target_start: float) -> Optional[float]:
     """
-    Find the exact keyframe packet timestamp in [target_start - 2.0, target_start + 1.5]
-    in ~0.1s using packet-level ffprobe so -c:v copy starts on an exact I-frame with 0.000s audio sync!
+    Find the exact keyframe packet timestamp in [target_start - 5.0, target_start + 7.0]
+    in ~0.1s using packet-level ffprobe so even long videos with 10s GOP intervals
+    always use 0.6s stream copy instead of falling back to slow CPU re-encoding!
     """
-    search_start = max(0.0, target_start - 2.0)
+    search_start = max(0.0, target_start - 5.0)
     cmd = [
         "ffprobe",
         "-v", "error",
         "-select_streams", "v:0",
         "-show_entries", "packet=pts_time,flags",
-        "-read_intervals", f"{search_start:.2f}%+4.5",
+        "-read_intervals", f"{search_start:.2f}%+12.0",
         "-of", "csv=p=0",
         video_path,
     ]
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
         if res.returncode != 0:
             return None
         keyframes = []
@@ -95,7 +96,7 @@ def _find_nearest_keyframe_time(video_path: str, target_start: float) -> Optiona
         # Pick the keyframe closest to target_start (preferring <= target_start + 0.8s)
         valid = [k for k in keyframes if k <= target_start + 0.8]
         best = min(valid or keyframes, key=lambda k: abs(k - target_start))
-        return round(best, 4)
+        return round(best, 6)
     except Exception:
         return None
 

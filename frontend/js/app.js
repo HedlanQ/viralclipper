@@ -1050,34 +1050,36 @@ async function downloadClipFile(clipUrl, filename, btnEl = null) {
         origHtml = btnEl.innerHTML;
         btnEl.disabled = true;
         btnEl.classList.add('opacity-70', 'pointer-events-none');
-        btnEl.innerHTML = `${ICONS.spinner}<span>Saving...</span>`;
+        btnEl.innerHTML = `${ICONS.spinner}<span>Starting...</span>`;
     }
     try {
-        const res = await fetch(`${clipUrl}?download=true`);
-        if (!res.ok) {
-            if (res.status === 404) {
+        const downloadUrl = `${clipUrl}?download=true`;
+        const headRes = await fetch(downloadUrl, { method: 'HEAD' });
+        if (!headRes.ok) {
+            if (headRes.status === 404) {
                 throw new Error(`Clip file "${filename}" expired on the cloud server after a restart. Re-process the video to download the MP4.`);
             }
-            throw new Error(`Download failed (HTTP ${res.status})`);
+            throw new Error(`Download failed (HTTP ${headRes.status})`);
         }
-        const blob = await res.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+        // Trigger immediate browser-native streaming download via an isolated hidden iframe
+        // (starts immediately in the browser download bar without buffering 40MB in JS RAM,
+        // and allows multiple simultaneous batch downloads without canceling each other!)
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = downloadUrl;
+        document.body.appendChild(iframe);
+        setTimeout(() => iframe.remove(), 60000);
         return true;
     } catch (err) {
         showToast(err.message || `Failed to download ${filename}`, 'error');
         return false;
     } finally {
         if (btnEl && origHtml !== null) {
-            btnEl.disabled = false;
-            btnEl.classList.remove('opacity-70', 'pointer-events-none');
-            btnEl.innerHTML = origHtml;
+            setTimeout(() => {
+                btnEl.disabled = false;
+                btnEl.classList.remove('opacity-70', 'pointer-events-none');
+                btnEl.innerHTML = origHtml;
+            }, 600);
         }
     }
 }
@@ -1087,7 +1089,7 @@ async function handleDownloadSelected() {
     const filenames = Array.from(selectedClipsSet);
     const jobId = currentResultsData.job_id;
 
-    showToast(`Downloading ${filenames.length} selected clip(s)...`, 'success');
+    showToast(`Starting download for ${filenames.length} selected clip(s)...`, 'success');
     if (btnDownloadSelected) btnDownloadSelected.disabled = true;
 
     let successCount = 0;
@@ -1096,12 +1098,12 @@ async function handleDownloadSelected() {
         const clipUrl = `${API_BASE}/api/clips/${jobId}/${fname}`;
         const ok = await downloadClipFile(clipUrl, fname);
         if (ok) successCount++;
+        if (i < filenames.length - 1) {
+            await new Promise((r) => setTimeout(r, 350));
+        }
     }
 
     updateSelectedCountUI();
-    if (successCount > 0) {
-        showToast(`Downloaded ${successCount} clip(s) successfully!`, 'success');
-    }
 }
 
 function updateClipInHistory(jobId, updatedClip) {

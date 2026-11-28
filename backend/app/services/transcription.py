@@ -5,6 +5,7 @@ Transcription service supporting:
 2. Local faster-whisper fallback (condition_on_previous_text=False, beam_size=5, word timestamps, VAD + hallucination filtering).
 """
 
+import glob
 import hashlib
 import json
 import logging
@@ -14,7 +15,7 @@ import subprocess
 import urllib.request
 import urllib.error
 import uuid
-from typing import Optional
+from typing import Callable, Optional
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -195,77 +196,108 @@ def _get_cache_path(video_path: str, engine_tag: str) -> str:
         return ""
 
 
-def _extract_audio_for_transcription(video_path: str, for_cloud: bool = False) -> str:
+def _get_audio_chunk_duration(audio_path: str) -> float:
+    """Get exact duration in seconds of an audio chunk via ffprobe."""
+    cmd = [
+        "ffprobe",
+        "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        audio_path,
+    ]
+    try:
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+        val = res.stdout.strip()
+        if res.returncode == 0 and val and val != "N/A":
+            return float(val)
+    except Exception:
+        pass
+    return 600.0
+
+
+def _extract_audio_chunks_for_cloud(video_path: str) -> list[str]:
     """
-    Extract a speech-optimized 16kHz mono audio track for accurate transcription.
-    Applies gentle high-pass filtering (removes low-end rumble/hum) and dynamic
-    normalization so quiet/uneven speech is clearly understood by Whisper without
-    causing silence hallucinations.
+    Extract audio into 10-minute (600s) chunks (<12MB each) for Groq Cloud Whisper:
+      1. First uses instant stream-copy segmentation (-c:a copy -f segment -segment_time 600),
+         which finishes in 1-2s with 0% CPU even on a 1-hour or 2-hour video!
+      2. Falls back to segmented 16kHz 24k mono AAC chunks only if stream copy fails or a chunk exceeds 23MB.
     """
     os.makedirs(settings.TEMP_DIR, exist_ok=True)
-    speech_filter = "highpass=f=80,dynaudnorm=f=150:g=15:m=10"
+    uid = uuid.uuid4().hex[:8]
+    copy_pattern = os.path.join(settings.TEMP_DIR, f"chunk_copy_{uid}_%03d.m4a")
+    copy_glob = os.path.join(settings.TEMP_DIR, f"chunk_copy_{uid}_*.m4a")
 
+    cmd_copy = [
+        "ffmpeg", "-y", "-nostats", "-vn", "-sn", "-dn",
+        "-i", video_path,
+        "-c:a", "copy",
+        "-f", "segment",
+        "-segment_time", "600",
+        "-reset_timestamps", "1",
+        copy_pattern,
+    ]
+    try:
+        res_copy = subprocess.run(cmd_copy, capture_output=True, text=True, timeout=180)
+        chunks = sorted(glob.glob(copy_glob))
+        if (
+            res_copy.returncode == 0
+            and chunks
+            and all(1000 < os.path.getsize(c) < 23 * 1024 * 1024 for c in chunks)
+        ):
+            logger.info(
+                f"Instant stream-copy audio extraction produced {len(chunks)} chunk(s) "
+                f"({sum(os.path.getsize(c) for c in chunks)} bytes total)"
+            )
+            return chunks
+    except Exception as e:
+        logger.warning(f"Segmented audio stream copy skipped ({e}), falling back to 24k AAC chunks...")
+
+    for c in glob.glob(copy_glob):
+        try:
+            os.remove(c)
+        except Exception:
+            pass
+
+    enc_pattern = os.path.join(settings.TEMP_DIR, f"chunk_24k_{uid}_%03d.m4a")
+    enc_glob = os.path.join(settings.TEMP_DIR, f"chunk_24k_{uid}_*.m4a")
+    cmd_enc = [
+        "ffmpeg", "-y", "-nostats", "-vn", "-sn", "-dn",
+        "-i", video_path,
+        "-ar", "16000",
+        "-ac", "1",
+        "-c:a", "aac",
+        "-b:a", "24k",
+        "-f", "segment",
+        "-segment_time", "600",
+        "-reset_timestamps", "1",
+        enc_pattern,
+    ]
+    try:
+        res_enc = subprocess.run(cmd_enc, capture_output=True, text=True, timeout=600)
+        chunks = sorted(glob.glob(enc_glob))
+        if res_enc.returncode == 0 and chunks:
+            logger.info(f"Segmented 24k AAC audio extraction produced {len(chunks)} chunk(s)")
+            return chunks
+    except Exception as e:
+        logger.warning(f"Segmented 24k AAC extraction failed: {e}")
+
+    for c in glob.glob(enc_glob):
+        try:
+            os.remove(c)
+        except Exception:
+            pass
+
+    raise RuntimeError("Failed to extract audio track from the uploaded video.")
+
+
+def _extract_audio_for_transcription(video_path: str, for_cloud: bool = False) -> str:
+    """Extract a single audio file for local faster-whisper fallback."""
     if for_cloud:
-        # 1. Try instant audio stream copy FIRST (~1s, ~0% CPU on Render's 0.1 CPU)
-        temp_copy = os.path.join(settings.TEMP_DIR, f"audio_copy_{uuid.uuid4().hex[:8]}.m4a")
-        cmd_copy = [
-            "ffmpeg", "-y", "-nostats", "-vn", "-sn", "-dn",
-            "-i", video_path, "-c:a", "copy", temp_copy,
-        ]
-        try:
-            res_copy = subprocess.run(cmd_copy, capture_output=True, text=True, timeout=120)
-            if (
-                res_copy.returncode == 0
-                and os.path.exists(temp_copy)
-                and 1000 < os.path.getsize(temp_copy) < 24 * 1024 * 1024
-            ):
-                logger.info(f"Instant audio stream copy succeeded ({os.path.getsize(temp_copy)} bytes)")
-                return temp_copy
-        except Exception as e:
-            logger.warning(f"Audio stream copy skipped ({e}), falling back to compact encode...")
-        if os.path.exists(temp_copy):
-            try:
-                os.remove(temp_copy)
-            except Exception:
-                pass
+        chunks = _extract_audio_chunks_for_cloud(video_path)
+        return chunks[0] if chunks else video_path
 
-        # 2. Fallback: compact 16kHz mono AAC (skip heavy dynaudnorm on Render's 0.1 CPU)
-        is_render_cloud = bool(os.environ.get("RENDER"))
-        temp_audio = os.path.join(settings.TEMP_DIR, f"audio_24k_{uuid.uuid4().hex[:8]}.m4a")
-        cmd = [
-            "ffmpeg",
-            "-y",
-            "-nostats",
-            "-vn",
-            "-sn",
-            "-dn",
-            "-i", video_path,
-            "-ar", "16000",
-            "-ac", "1",
-        ]
-        if not is_render_cloud:
-            cmd.extend(["-af", speech_filter])
-        cmd.extend(["-c:a", "aac", "-b:a", "24k", temp_audio])
-
-        try:
-            res = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
-            if res.returncode == 0 and os.path.exists(temp_audio):
-                size = os.path.getsize(temp_audio)
-                if 1000 < size < 24 * 1024 * 1024:
-                    logger.info(f"Extracted compact cloud audio (24k, {size} bytes)")
-                    return temp_audio
-                os.remove(temp_audio)
-        except Exception as e:
-            logger.warning(f"Compact cloud audio encode error: {e}")
-            if os.path.exists(temp_audio):
-                try:
-                    os.remove(temp_audio)
-                except Exception:
-                    pass
-
-        return video_path
-
-    # Local faster-whisper WAV extraction (16kHz mono PCM with speech clarity filter)
+    os.makedirs(settings.TEMP_DIR, exist_ok=True)
+    speech_filter = "highpass=f=80,dynaudnorm=f=150:g=15:m=10"
     temp_audio = os.path.join(settings.TEMP_DIR, f"audio_{uuid.uuid4().hex[:8]}.wav")
     cmd = [
         "ffmpeg",
@@ -339,19 +371,28 @@ def _call_groq_whisper_api(audio_path: str, groq_api_key: str, model_name: str) 
         raise RuntimeError(f"Groq Cloud Whisper API ({model_name}) error ({e.code}): {err_body}")
 
 
-def _transcribe_via_groq_cloud(audio_path: str, groq_api_key: str) -> dict:
+def _transcribe_via_groq_cloud(
+    audio_path: str,
+    groq_api_key: str,
+    time_offset: float = 0.0,
+    prefer_turbo: bool = False,
+) -> dict:
     """
-    Transcribe audio using Groq Cloud's full-accuracy 'whisper-large-v3' model
-    (falling back to 'whisper-large-v3-turbo' if needed), with strict hallucination
-    filtering and exact monotonic word-level timestamps.
+    Transcribe a single audio file/chunk using Groq Cloud Whisper, applying time_offset
+    to all segment and word timestamps.
     """
     data = None
-    used_model = "whisper-large-v3"
+    models_order = (
+        ("whisper-large-v3-turbo", "whisper-large-v3")
+        if prefer_turbo
+        else ("whisper-large-v3", "whisper-large-v3-turbo")
+    )
+    used_model = models_order[0]
     last_err = None
 
-    for candidate_model in ("whisper-large-v3", "whisper-large-v3-turbo"):
+    for candidate_model in models_order:
         try:
-            logger.info(f"Transcribing via Groq Cloud LPU ('{candidate_model}')...")
+            logger.info(f"Transcribing via Groq Cloud LPU ('{candidate_model}', offset={time_offset:.1f}s)...")
             data = _call_groq_whisper_api(audio_path, groq_api_key, candidate_model)
             used_model = candidate_model
             break
@@ -367,15 +408,17 @@ def _transcribe_via_groq_cloud(audio_path: str, groq_api_key: str) -> dict:
     segments = []
     kept_words = []
     full_text_parts = []
-    prev_end = 0.0
+    prev_end = time_offset
 
     for seg in raw_segments:
         raw_text = seg.get("text", "").strip()
         if not raw_text:
             continue
 
-        s_start = float(seg.get("start", 0.0))
-        s_end = float(seg.get("end", s_start + 1.0))
+        raw_s_start = float(seg.get("start", 0.0))
+        raw_s_end = float(seg.get("end", raw_s_start + 1.0))
+        s_start = raw_s_start + time_offset
+        s_end = raw_s_end + time_offset
         seg_dur = max(0.0, s_end - s_start)
 
         no_speech_prob = float(seg.get("no_speech_prob", 0.0) or 0.0)
@@ -395,19 +438,17 @@ def _transcribe_via_groq_cloud(audio_path: str, groq_api_key: str) -> dict:
         if not text:
             continue
 
-        # Match word-level timestamps whose midpoint lies inside [s_start, s_end]
-        # (prevents grabbing words from the previous/next segment!)
         seg_words = []
         for w in all_words:
-            w_start = float(w.get("start", 0.0))
-            w_end = float(w.get("end", w_start))
-            w_mid = (w_start + w_end) / 2.0
-            if s_start - 0.02 <= w_mid <= s_end + 0.02:
+            raw_w_start = float(w.get("start", 0.0))
+            raw_w_end = float(w.get("end", raw_w_start))
+            w_mid = (raw_w_start + raw_w_end) / 2.0
+            if raw_s_start - 0.02 <= w_mid <= raw_s_end + 0.02:
                 w_text = str(w.get("word", "")).strip()
                 if w_text:
                     seg_words.append({
-                        "start": round(w_start, 2),
-                        "end": round(w_end, 2),
+                        "start": round(raw_w_start + time_offset, 2),
+                        "end": round(raw_w_end + time_offset, 2),
                         "word": w_text,
                     })
 
@@ -436,15 +477,20 @@ def _transcribe_via_groq_cloud(audio_path: str, groq_api_key: str) -> dict:
         "engine": f"{used_model} (Groq Cloud)",
     }
     logger.info(
-        f"Groq Cloud {used_model} complete: {len(segments)} clean segments (filtered {len(raw_segments) - len(segments)} hallucinated/silent)!"
+        f"Groq Cloud {used_model} chunk complete: {len(segments)} clean segments (filtered {len(raw_segments) - len(segments)} hallucinated/silent)!"
     )
     return result
 
 
-def transcribe_video(video_path: str, groq_api_key: Optional[str] = None) -> dict:
+def transcribe_video(
+    video_path: str,
+    groq_api_key: Optional[str] = None,
+    progress_callback: Optional[Callable[[int, int], None]] = None,
+) -> dict:
     """
-    Transcribe a video file using Groq Cloud ('whisper-large-v3') when configured,
-    or fall back to local faster-whisper with anti-hallucination decoding & word-level timestamps.
+    Transcribe a video file using Groq Cloud (with automatic 10-min stream-copy chunking
+    for long videos so even 1-2 hour videos never stall at 25% or exceed 25MB),
+    or fall back to local faster-whisper.
     """
     effective_groq_key = (groq_api_key or settings.GROQ_API_KEY or "").strip()
     engine_tag = "groq_v3_full" if effective_groq_key else f"local_{settings.WHISPER_MODEL}"
@@ -461,13 +507,56 @@ def transcribe_video(video_path: str, groq_api_key: Optional[str] = None) -> dic
         except Exception:
             pass
 
-    # 1. Try Groq Cloud Whisper-Large-V3 first (0% local CPU/RAM, highest accuracy)
+    # 1. Try Groq Cloud Whisper with stream-copy 10-minute chunking
     groq_error = None
     if effective_groq_key:
-        audio_source = _extract_audio_for_transcription(video_path, for_cloud=True)
-        is_temp = audio_source != video_path
+        chunks = []
         try:
-            result = _transcribe_via_groq_cloud(audio_source, effective_groq_key)
+            chunks = _extract_audio_chunks_for_cloud(video_path)
+            total_chunks = len(chunks)
+            all_segments = []
+            all_words = []
+            all_text_parts = []
+            language = "en"
+            engine_used = "whisper-large-v3 (Groq Cloud)"
+            cumulative_offset = 0.0
+
+            for idx, chunk_path in enumerate(chunks):
+                if progress_callback:
+                    try:
+                        progress_callback(idx + 1, total_chunks)
+                    except Exception:
+                        pass
+
+                chunk_dur = _get_audio_chunk_duration(chunk_path)
+                chunk_res = _transcribe_via_groq_cloud(
+                    chunk_path,
+                    effective_groq_key,
+                    time_offset=cumulative_offset,
+                    prefer_turbo=(total_chunks > 1),
+                )
+                all_segments.extend(chunk_res.get("segments", []))
+                all_words.extend(chunk_res.get("words", []))
+                if chunk_res.get("full_text"):
+                    all_text_parts.append(chunk_res["full_text"])
+                language = chunk_res.get("language", language)
+                engine_used = chunk_res.get("engine", engine_used)
+                cumulative_offset += chunk_dur
+
+                # Free disk/RAM immediately after each chunk finishes
+                if os.path.exists(chunk_path):
+                    try:
+                        os.remove(chunk_path)
+                    except Exception:
+                        pass
+
+            result = {
+                "full_text": " ".join(all_text_parts),
+                "segments": all_segments,
+                "words": all_words,
+                "language": language,
+                "engine": engine_used,
+            }
             if cache_path:
                 try:
                     with open(cache_path, "w", encoding="utf-8") as f:
@@ -479,11 +568,12 @@ def transcribe_video(video_path: str, groq_api_key: Optional[str] = None) -> dic
             groq_error = str(e)
             logger.warning(f"Groq Cloud transcription failed ({e}), falling back to local Whisper...")
         finally:
-            if is_temp and os.path.exists(audio_source):
-                try:
-                    os.remove(audio_source)
-                except Exception:
-                    pass
+            for c in chunks:
+                if c != video_path and os.path.exists(c):
+                    try:
+                        os.remove(c)
+                    except Exception:
+                        pass
 
     # 2. Local faster-whisper fallback (anti-hallucination settings enabled)
     logger.info(f"Starting local word-aligned transcription for: {video_path}")

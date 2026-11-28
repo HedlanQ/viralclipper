@@ -135,12 +135,25 @@ async def process_video_pipeline(job_id: str):
 
         # Step 3: Transcribe
         whisper_desc = (
-            "Transcribing via Groq Cloud (Whisper-Large-V3 High Accuracy)..."
+            "Extracting audio & transcribing via Groq Cloud..."
             if groq_key
             else "Transcribing audio with Whisper AI..."
         )
         update_status(job_id, "transcribing", 25, whisper_desc)
-        transcript = await asyncio.to_thread(transcribe_video, video_path, groq_key)
+
+        def on_transcribe_progress(chunk_idx: int, total_chunks: int):
+            if total_chunks > 1:
+                pct = 25 + int(((chunk_idx - 1) / total_chunks) * 32)
+                update_status(
+                    job_id,
+                    "transcribing",
+                    min(58, pct),
+                    f"Transcribing audio part {chunk_idx} of {total_chunks} via Groq Cloud...",
+                )
+
+        transcript = await asyncio.to_thread(
+            transcribe_video, video_path, groq_key, on_transcribe_progress
+        )
         update_status(job_id, "transcribing", 60, "Speech transcription complete!")
 
         if not transcript["segments"]:
