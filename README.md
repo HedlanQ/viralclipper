@@ -12,35 +12,43 @@ pinned: false
 
 # ⚡ ViralClipper
 
-AI-Powered Viral Clip Generator & Dead-Air Remover — Upload a video or paste a YouTube link, get ranked viral clips automatically.
+AI-Powered Raw Viral Short-Clip Generator — Upload a long video (up to 2 GB) and automatically extract ranked, sentence-complete 20–40s viral clips ready for TikTok, Instagram Reels, and YouTube Shorts.
 
-## How It Works
+## Key Features
 
-1. **Input**: Upload a video file (MP4, MOV, AVI, MKV, WEBM) **or paste a YouTube video / Shorts link**.
-2. **Audio Transcription**: `faster-whisper` transcribes spoken words with timestamps on your local machine (100% free).
-3. **Dead-Air Detection**: FFmpeg detects silent pauses and dead air throughout the video.
-4. **AI Virality Analysis**: Google Gemini 2.0 Flash (or built-in local smart heuristic analyzer) analyzes hooks, pacing, and emotional peaks to pinpoint the best 10–20s moments.
-5. **Precision Dead-Air Splicing**: FFmpeg cuts the clips and splices out internal pauses (>0.8s) for punchy, high-retention short clips.
-6. **Ranked Clips Preview**: Watch the clips in-browser, copy captions/hashtags in 1-click, and download MP4 files ready for TikTok, Instagram Reels, and YouTube Shorts.
+1. **Up to 2 GB Video Uploads**: Streams large video files (`MP4`, `MOV`, `AVI`, `MKV`, `WEBM`) in 1 MB disk chunks for low-memory cloud hosting. *(YouTube Link tab is currently marked Coming Soon).*
+2. **Groq Cloud Whisper-Large-V3-Turbo + Local Fallback**:
+   - **Cloud LPU Mode**: Instant audio stream-copy with automatic 10-minute chunking for long videos, transcribing via Groq `whisper-large-v3-turbo` in seconds with anti-hallucination filtering.
+   - **Local Mode**: Falls back to `faster-whisper` when running offline without a cloud key.
+3. **Narrative & Lesson-Aware AI Virality Analyzer**:
+   - Uses **Google Gemini 2.0 Flash** (or the built-in **Narrative & Lesson-Aware Local Engine**) to score hooks, explanations, and takeaways.
+   - Snaps every clip to complete sentence boundaries with natural lead-in and tail audio buffers so sentences are never cut off.
+4. **Keyframe-Locked Stream Copy (~0.6s/clip)**:
+   - Cuts clips at keyframe boundaries using `-noaccurate_seek` and `-copyts -to` for zero video re-encoding and frame-accurate audio sync, with optional dead-air removal.
+5. **OLED Bento Studio UI & Workflow Tools**:
+   - Watch ranked clips in-browser with exact saved filenames (`clip_01_score95.mp4`).
+   - **1-Click Copy Clip Transcript**, **Copy Full Transcript**, and **Select Clips Checkbox Batch Download**.
+   - **Private Browser History Drawer** to revisit past jobs, copy transcripts/captions, and reopen clip views anytime.
 
-## Tech Stack (100% Free)
+## Tech Stack
 
-| Component | Tool | Cost |
+| Component | Technology | Cost |
 |---|---|---|
-| Backend | Python FastAPI | Free |
-| YouTube Downloader | `yt-dlp` | Free |
-| Transcription | `faster-whisper` (runs locally) | Free |
-| AI Analysis | Google Gemini 2.0 Flash (Free API) or Local Smart Cadence Engine | Free |
-| Video Processing | FFmpeg (`silencedetect` + `concat`) | Free |
-| Frontend | HTML5 + Tailwind CSS + Vanilla JS | Free |
+| Backend | Python 3.11 + FastAPI + Uvicorn | Free |
+| Cloud Transcription | Groq Cloud (`whisper-large-v3-turbo`) | Free Tier |
+| Local Transcription | `faster-whisper` | Free |
+| Virality & Lesson Analysis | Google Gemini 2.0 Flash or Built-in Narrative Heuristic Engine | Free |
+| Video & Audio Processing | FFmpeg (Keyframe stream-copy + `silencedetect`) | Free |
+| Frontend | HTML5 + Tailwind CSS + Vanilla JS (OLED Bento Studio UI) | Free |
+| Cloud Deployment | Docker + Render (`render.yaml`) | Free Tier |
 
 ## Quick Start (Windows)
 
-Just double-click:
-```
+Double-click:
+```bat
 run.bat
 ```
-This automatically sets up the environment and opens `http://localhost:8000` in your browser.
+This sets up the virtual environment and opens `http://localhost:8000` in your browser.
 
 ## Manual Start
 
@@ -49,19 +57,29 @@ cd backend
 venv\Scripts\activate
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-Then visit `http://localhost:8000`.
+Then open `http://localhost:8000`.
+
+## Environment Variables (`backend/.env`)
+
+```env
+GROQ_API_KEY=gsk_your_groq_key_here
+GEMINI_API_KEY=your_gemini_key_here_or_leave_blank_for_local_engine
+WHISPER_MODEL=base
+TARGET_CLIP_DURATION_MIN=20
+TARGET_CLIP_DURATION_MAX=40
+```
 
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
+| POST | `/api/upload` | Chunked upload for local video files (up to 2 GB) |
 | POST | `/api/youtube` | Download and prepare a YouTube video |
-| POST | `/api/upload` | Upload a local video file |
-| POST | `/api/process/{job_id}` | Start processing pipeline |
-| GET | `/api/status/{job_id}` | Check job progress |
-| GET | `/api/results/{job_id}` | Retrieve ranked viral clips metadata |
-| GET | `/api/clips/{job_id}/{filename}` | Download generated clip video |
-| GET | `/api/health` | Health & API key check |
+| POST | `/api/process/{job_id}` | Start transcription, analysis, and clip-cutting pipeline |
+| GET | `/api/status/{job_id}` | Poll live job progress percentage and stage |
+| GET | `/api/results/{job_id}` | Retrieve ranked viral clips and full transcript |
+| GET | `/api/clips/{job_id}/{filename}` | Stream or download generated `.mp4` clip |
+| GET | `/api/health` | Health & active AI engine check |
 | DELETE | `/api/job/{job_id}` | Clean up job files |
 
 ## License
