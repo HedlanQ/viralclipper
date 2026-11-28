@@ -250,7 +250,7 @@ def _compute_safe_start_time(segments: list[dict], start_idx: int) -> float:
 
 def _compute_safe_end_time(segments: list[dict], end_idx: int, video_duration: float) -> float:
     """
-    Add a natural tail buffer (+0.40s) after the final word so the speaker's
+    Add a natural tail buffer (+0.45s to +0.85s) after the final word so the speaker's
     last syllable and breath finish cleanly without overlapping the next sentence.
     """
     raw_end = segments[end_idx]["end"]
@@ -258,13 +258,13 @@ def _compute_safe_end_time(segments: list[dict], end_idx: int, video_duration: f
         next_start = segments[end_idx + 1]["start"]
         gap = next_start - raw_end
         if gap > 0.15:
-            # Leave a tiny 0.05s margin before the next sentence begins, up to +0.50s pad
-            padded = raw_end + min(0.50, gap - 0.05)
+            # Leave a tiny 0.04s margin before the next sentence begins, up to +0.85s pad
+            padded = raw_end + min(0.85, gap - 0.04)
         else:
-            # Continuous speech: add +0.25s so the final consonant isn't clipped
-            padded = raw_end + 0.25
+            # Continuous speech: add +0.45s so the final word and consonant aren't clipped
+            padded = raw_end + 0.45
     else:
-        padded = raw_end + 0.50
+        padded = raw_end + 0.85
 
     return round(min(video_duration, padded), 2)
 

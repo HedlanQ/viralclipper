@@ -302,19 +302,21 @@ def _cut_single_clip(
         kf_start = _find_nearest_keyframe_time(video_path, p_start)
         if kf_start is not None:
             actual_start = kf_start
-            duration = max(0.5, round(p_end - actual_start, 2))
-            logger.info(
-                f"Turbo Keyframe-Locked Stream Copy #{clip.rank}: {actual_start:.2f}s (kf) -> {p_end:.2f}s ({duration:.2f}s)"
-            )
             seek_target = round(actual_start + 0.02, 4)
+            end_target = round(p_end + 0.25, 4)
+            duration = max(0.5, round(end_target - actual_start, 2))
+            logger.info(
+                f"Turbo Keyframe-Locked Stream Copy #{clip.rank}: {actual_start:.2f}s (kf) -> {end_target:.2f}s ({duration:.2f}s)"
+            )
             cmd_fast = [
                 "ffmpeg",
                 "-y",
                 "-nostats",
                 "-noaccurate_seek",
+                "-copyts",
                 "-ss", str(seek_target),
                 "-i", video_path,
-                "-t", str(duration),
+                "-to", str(end_target),
                 "-c:v", "copy",
                 "-c:a", "aac",
                 "-b:a", "128k",
