@@ -11,9 +11,8 @@
     --color-cta-hover: #BE123C;
 }
 
-/* Clean Solid Dark Studio Background + Fluid Viewport Scaling (zoom-out proof) */
+/* Clean Solid Dark Studio Background + Smooth Scroll */
 html {
-    font-size: clamp(14px, 0.85vw + 2px, 28px);
     scroll-behavior: smooth;
 }
 
@@ -24,14 +23,14 @@ body {
     overflow-x: hidden;
 }
 
-/* 100% Fluid Full-Viewport Container (never shrinks into a narrow box when zooming out) */
+/* 100% Fluid Full-Viewport Container (edge-to-edge responsive across all zoom levels) */
 .fluid-shell {
     width: 100%;
     max-width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: clamp(1.25rem, 5.5vw, 8rem);
-    padding-right: clamp(1.25rem, 5.5vw, 8rem);
+    padding-left: clamp(1.25rem, 4.5vw, 5.5rem);
+    padding-right: clamp(1.25rem, 4.5vw, 5.5rem);
 }
 
 /* Top Scroll Progress Neon Line */
@@ -182,44 +181,44 @@ body {
     box-shadow: 0 22px 44px -12px rgba(225, 29, 72, 0.22), 0 12px 28px rgba(0, 0, 0, 0.6);
 }
 
-/* ─── True 3D Scroll-Triggered & Scroll-Linked Animations ─── */
+/* ─── Smooth Scroll-Triggered & Scroll-Linked Animations ─── */
 
 .scroll-reveal {
     opacity: 0;
-    transform: perspective(1100px) translateY(72px) rotateX(10deg) scale(0.92);
-    filter: blur(8px);
+    transform: translateY(48px) scale(0.96);
+    filter: blur(5px);
     transition:
-        opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-        transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-        filter 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+        opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.75s cubic-bezier(0.16, 1, 0.3, 1);
     will-change: opacity, transform, filter;
 }
 
 .scroll-reveal-left {
     opacity: 0;
-    transform: perspective(1100px) translateX(-70px) rotateY(8deg) scale(0.94);
-    filter: blur(7px);
+    transform: translateX(-48px) scale(0.97);
+    filter: blur(5px);
     transition:
-        opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-        transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-        filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+        opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .scroll-reveal-right {
     opacity: 0;
-    transform: perspective(1100px) translateX(70px) rotateY(-8deg) scale(0.94);
-    filter: blur(7px);
+    transform: translateX(48px) scale(0.97);
+    filter: blur(5px);
     transition:
-        opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-        transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-        filter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+        opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .scroll-reveal.is-visible,
 .scroll-reveal-left.is-visible,
 .scroll-reveal-right.is-visible {
     opacity: 1;
-    transform: perspective(1100px) translate3d(0, var(--parallax-y, 0px), 0) rotateX(0deg) rotateY(0deg) scale(1);
+    transform: translate3d(0, var(--parallax-y, 0px), 0) scale(1);
     filter: blur(0);
 }
 
