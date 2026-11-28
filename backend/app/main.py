@@ -1,7 +1,11 @@
 """ViralClipper - AI-Powered Viral Clip Generator API."""
 
 import asyncio
+import hashlib
+import hmac
+import json
 import logging
+import math
 import os
 import re
 import time
@@ -23,6 +27,8 @@ from app.models import (
     YouTubeRequest,
     CaptionGenerateRequest,
     CaptionGenerateResponse,
+    LoginRequest,
+    RefillRequest,
 )
 from app.services.transcription import transcribe_video
 from app.services.analyzer import analyze_transcript, extract_clip_transcript
@@ -47,6 +53,62 @@ logger = logging.getLogger(__name__)
 
 # In-memory job storage
 jobs: dict[str, dict] = {}
+
+
+# ─── Owner Auth & Credit System ───────────────────────────────────────────────
+# shortcut: single-owner file-backed credit ledger, upgrade to DB when scaling multi-tenant accounts
+
+
+def _get_auth_token() -> str:
+    """Deterministic HMAC session token so container restarts never invalidate active login."""
+    secret = f"vc-auth:{settings.ADMIN_USERNAME}:{settings.ADMIN_PASSWORD}".encode("utf-8")
+    return hmac.new(secret, b"viralclipper-owner-session", hashlib.sha256).hexdigest()
+
+
+def _load_credit_state() -> dict:
+    """Load persisted credit balance or initialize with INITIAL_CREDITS."""
+    if os.path.exists(settings.AUTH_STATE_FILE):
+        try:
+            with open(settings.AUTH_STATE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return {
+                    "credits": int(data.get("credits", settings.INITIAL_CREDITS)),
+                    "used_credits": int(data.get("used_credits", 0)),
+                }
+        except Exception:
+            pass
+    return {"credits": settings.INITIAL_CREDITS, "used_credits": 0}
+
+
+def _save_credit_state(state: dict) -> None:
+    """Persist credit balance to disk."""
+    try:
+        with open(settings.AUTH_STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(state, f)
+    except Exception as e:
+        logger.warning(f"Could not save credit state: {e}")
+
+
+def _require_auth(request: Request) -> dict:
+    """Validate Bearer token and return current credit state."""
+    auth_header = request.headers.get("authorization", "")
+    token = auth_header[7:].strip() if auth_header.lower().startswith("bearer ") else ""
+    if not token or not hmac.compare_digest(token, _get_auth_token()):
+        raise HTTPException(
+            status_code=401,
+            detail="Please log in to your ViralClipper Studio account first.",
+        )
+    return _load_credit_state()
+
+
+def _deduct_credits_for_duration(duration_seconds: float) -> tuple[int, int]:
+    """Deduct 1 credit per minute of source video (rounded up, min 1 credit)."""
+    cost = max(1, int(math.ceil(max(duration_seconds, 1.0) / 60.0)))
+    state = _load_credit_state()
+    state["credits"] = max(0, state["credits"] - cost)
+    state["used_credits"] = state.get("used_credits", 0) + cost
+    _save_credit_state(state)
+    return cost, state["credits"]
 
 
 @asynccontextmanager
@@ -238,7 +300,8 @@ async def process_video_pipeline(job_id: str):
             except Exception:
                 pass
 
-        # Step 6: Complete
+        # Step 6: Deduct credits (1 credit = 1 min of source video, rounded up, only on success)
+        cost, remaining_credits = _deduct_credits_for_duration(duration)
         elapsed = time.time() - start_time
         full_transcript = transcript.get("full_text", "")
         job_data["result"] = ProcessingResult(
@@ -248,12 +311,14 @@ async def process_video_pipeline(job_id: str):
             video_duration=duration,
             processing_time=round(elapsed, 1),
             transcript_text=full_transcript,
+            credits_deducted=cost,
+            credits_remaining=remaining_credits,
         )
         update_status(
             job_id,
             "done",
             100,
-            f"All {len(clips)} clips ready! Processed in {elapsed:.0f}s",
+            f"All {len(clips)} clips ready! (-{cost} credit{'s' if cost != 1 else ''}, {remaining_credits} left)",
         )
 
     except Exception as e:
@@ -276,9 +341,59 @@ async def health():
     }
 
 
+@app.post("/api/auth/login")
+async def auth_login(req: LoginRequest):
+    """Authenticate owner account and return session token + credit balance."""
+    valid_user = req.username.strip().lower() == settings.ADMIN_USERNAME.strip().lower()
+    valid_pass = hmac.compare_digest(req.password, settings.ADMIN_PASSWORD)
+    if not (valid_user and valid_pass):
+        raise HTTPException(status_code=401, detail="Invalid username or password.")
+
+    state = _load_credit_state()
+    return {
+        "token": _get_auth_token(),
+        "username": settings.ADMIN_USERNAME,
+        "credits": state["credits"],
+        "used_credits": state["used_credits"],
+    }
+
+
+@app.get("/api/auth/me")
+async def auth_me(request: Request):
+    """Return current authenticated user profile and credit balance."""
+    state = _require_auth(request)
+    return {
+        "username": settings.ADMIN_USERNAME,
+        "credits": state["credits"],
+        "used_credits": state["used_credits"],
+    }
+
+
+@app.post("/api/auth/refill")
+async def auth_refill(request: Request, req: Optional[RefillRequest] = None):
+    """Refill credits for testing."""
+    state = _require_auth(request)
+    add_amount = req.amount if (req and req.amount > 0) else 100
+    state["credits"] += add_amount
+    _save_credit_state(state)
+    return {
+        "username": settings.ADMIN_USERNAME,
+        "credits": state["credits"],
+        "used_credits": state["used_credits"],
+        "added": add_amount,
+    }
+
+
 @app.post("/api/upload")
-async def upload_video(file: UploadFile = File(...)):
-    """Upload a video file for processing."""
+async def upload_video(request: Request, file: UploadFile = File(...)):
+    """Upload a video file for processing (requires login and positive credits)."""
+    state = _require_auth(request)
+    if state["credits"] <= 0:
+        raise HTTPException(
+            status_code=402,
+            detail="Insufficient credits (0 remaining). Click '+ Refill' in the navbar to top up.",
+        )
+
     if not file.filename or not is_allowed_file(file.filename):
         raise HTTPException(
             status_code=400,

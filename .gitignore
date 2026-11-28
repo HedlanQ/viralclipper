@@ -17,4 +17,5 @@ backend/temp/
 # Environment variables & secrets (never commit API keys to GitHub!)
 .env
 backend/.env
+backend/auth_state.json
 *.log

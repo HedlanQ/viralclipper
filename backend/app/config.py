@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     SILENCE_THRESHOLD: int = -35  # dB
     SILENCE_MIN_DURATION: float = 0.7  # seconds
 
+    # Owner Auth & Credit System
+    ADMIN_USERNAME: str = "admin"
+    ADMIN_PASSWORD: str = "viralclipper"
+    INITIAL_CREDITS: int = 500
+    AUTH_STATE_FILE: str = os.path.join(BACKEND_DIR, "auth_state.json")
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

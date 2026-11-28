@@ -29,12 +29,21 @@ const ICONS = {
 // ─── State ───────────────────────────────────────────────────────────────────
 
 let currentState = 'upload';
+let currentMainView = 'landing'; // 'landing' or 'studio'
 let activeInputTab = 'upload'; // 'upload' or 'youtube'
 let currentJobId = null;
 let selectedFile = null;
 let currentVideoLabel = '';
 let pollInterval = null;
 const HISTORY_STORAGE_KEY = 'viralclipper_history_v1';
+const AUTH_TOKEN_KEY = 'viralclipper_auth_token_v1';
+
+const authState = {
+    token: localStorage.getItem(AUTH_TOKEN_KEY) || '',
+    loggedIn: false,
+    username: '',
+    credits: 0,
+};
 
 // Settings loaded from localStorage
 const settings = {
@@ -152,6 +161,30 @@ const previewDuration = document.getElementById('preview-duration');
 const previewDeadair = document.getElementById('preview-deadair');
 const previewEngine = document.getElementById('preview-engine');
 
+// Landing Page, Auth & Credit Elements
+const landingPageView = document.getElementById('landing-page-view');
+const studioMainView = document.getElementById('studio-main-view');
+const previewModeBanner = document.getElementById('preview-mode-banner');
+const brandHomeLink = document.getElementById('brand-home-link');
+const btnSwitchView = document.getElementById('btn-switch-view');
+const switchViewLabel = document.getElementById('switch-view-label');
+const creditBadgeWrapper = document.getElementById('credit-badge-wrapper');
+const creditCountText = document.getElementById('credit-count-text');
+const btnRefillCredits = document.getElementById('btn-refill-credits');
+const btnOpenLogin = document.getElementById('btn-open-login');
+const btnLogout = document.getElementById('btn-logout');
+const btnHeroLogin = document.getElementById('btn-hero-login');
+const btnHeroPreview = document.getElementById('btn-hero-preview');
+const btnPreviewBannerLogin = document.getElementById('btn-preview-banner-login');
+const btnJoinDiscord = document.getElementById('btn-join-discord');
+const loginModal = document.getElementById('login-modal');
+const btnCloseLogin = document.getElementById('btn-close-login');
+const loginForm = document.getElementById('login-form');
+const loginUsername = document.getElementById('login-username');
+const loginPassword = document.getElementById('login-password');
+const loginErrorMsg = document.getElementById('login-error-msg');
+const btnSubmitLogin = document.getElementById('btn-submit-login');
+
 // ─── Initialization ──────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', init);
@@ -160,8 +193,226 @@ async function init() {
     initSettingsUI();
     initDragDrop();
     initEventListeners();
+    initAuthListeners();
     updateHistoryBadge();
+    await initAuthSession();
     await checkBackendHealth();
+}
+
+// ─── Landing Page, Auth & Credits ────────────────────────────────────────────
+
+function showMainView(view) {
+    currentMainView = view;
+    if (view === 'studio') {
+        if (landingPageView) landingPageView.classList.add('hidden');
+        if (studioMainView) {
+            studioMainView.classList.remove('hidden');
+            studioMainView.classList.add('flex');
+        }
+        if (switchViewLabel) switchViewLabel.textContent = '← Landing Page';
+    } else {
+        if (studioMainView) {
+            studioMainView.classList.add('hidden');
+            studioMainView.classList.remove('flex');
+        }
+        if (landingPageView) landingPageView.classList.remove('hidden');
+        if (switchViewLabel) {
+            switchViewLabel.textContent = authState.loggedIn ? 'Open Studio →' : 'Preview Studio';
+        }
+    }
+    updateAuthUI();
+}
+
+function updateAuthUI() {
+    if (authState.loggedIn) {
+        if (creditBadgeWrapper) {
+            creditBadgeWrapper.classList.remove('hidden');
+            creditBadgeWrapper.classList.add('flex');
+        }
+        if (creditCountText) creditCountText.textContent = String(authState.credits);
+        if (btnOpenLogin) btnOpenLogin.classList.add('hidden');
+        if (btnLogout) btnLogout.classList.remove('hidden');
+        if (previewModeBanner) previewModeBanner.classList.add('hidden');
+        if (btnHeroLogin) btnHeroLogin.innerHTML = '<span>Enter Clipper Studio →</span>';
+    } else {
+        if (creditBadgeWrapper) {
+            creditBadgeWrapper.classList.add('hidden');
+            creditBadgeWrapper.classList.remove('flex');
+        }
+        if (btnOpenLogin) btnOpenLogin.classList.remove('hidden');
+        if (btnLogout) btnLogout.classList.add('hidden');
+        if (previewModeBanner) previewModeBanner.classList.remove('hidden');
+        if (btnHeroLogin) btnHeroLogin.innerHTML = '<span>Login to Studio</span>';
+    }
+    if (switchViewLabel) {
+        switchViewLabel.textContent = currentMainView === 'studio'
+            ? '← Landing Page'
+            : (authState.loggedIn ? 'Open Studio →' : 'Preview Studio');
+    }
+}
+
+async function initAuthSession() {
+    if (!authState.token) {
+        showMainView('landing');
+        return;
+    }
+    try {
+        const res = await fetch(`${API_BASE}/api/auth/me`, {
+            headers: { 'Authorization': `Bearer ${authState.token}` },
+        });
+        if (res.ok) {
+            const data = await res.json();
+            authState.loggedIn = true;
+            authState.username = data.username;
+            authState.credits = data.credits;
+            showMainView('studio');
+            return;
+        }
+    } catch {
+        // Ignore network error on boot
+    }
+    authState.token = '';
+    authState.loggedIn = false;
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    showMainView('landing');
+}
+
+function openLoginModal(noticeText = '') {
+    if (!loginModal) return;
+    if (loginErrorMsg) {
+        if (noticeText) {
+            loginErrorMsg.textContent = noticeText;
+            loginErrorMsg.classList.remove('hidden');
+        } else {
+            loginErrorMsg.classList.add('hidden');
+        }
+    }
+    loginModal.classList.remove('hidden');
+    if (loginUsername) setTimeout(() => loginUsername.focus(), 50);
+}
+
+function closeLoginModal() {
+    if (loginModal) loginModal.classList.add('hidden');
+}
+
+async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const username = (loginUsername ? loginUsername.value : '').trim();
+    const password = loginPassword ? loginPassword.value : '';
+    if (!username || !password) return;
+
+    if (btnSubmitLogin) {
+        btnSubmitLogin.disabled = true;
+        btnSubmitLogin.textContent = 'Signing in...';
+    }
+    if (loginErrorMsg) loginErrorMsg.classList.add('hidden');
+
+    try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            throw new Error(data.detail || 'Invalid username or password.');
+        }
+        authState.token = data.token;
+        authState.loggedIn = true;
+        authState.username = data.username;
+        authState.credits = data.credits;
+        localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+        if (loginPassword) loginPassword.value = '';
+        closeLoginModal();
+        showMainView('studio');
+        showToast(`Welcome back, ${data.username}! (${data.credits} credits available)`, 'success');
+    } catch (err) {
+        if (loginErrorMsg) {
+            loginErrorMsg.textContent = err.message;
+            loginErrorMsg.classList.remove('hidden');
+        }
+    } finally {
+        if (btnSubmitLogin) {
+            btnSubmitLogin.disabled = false;
+            btnSubmitLogin.textContent = 'Sign In & Unlock Studio';
+        }
+    }
+}
+
+function handleLogout() {
+    authState.token = '';
+    authState.loggedIn = false;
+    authState.username = '';
+    authState.credits = 0;
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    showMainView('landing');
+    showToast('Logged out of ViralClipper Studio.');
+}
+
+async function handleRefillCredits() {
+    if (!authState.loggedIn) return;
+    try {
+        const res = await fetch(`${API_BASE}/api/auth/refill`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authState.token}`,
+            },
+            body: JSON.stringify({ amount: 100 }),
+        });
+        if (res.ok) {
+            const data = await res.json();
+            authState.credits = data.credits;
+            updateAuthUI();
+            showToast(`Added +${data.added} test credits! Balance: ${data.credits} credits.`, 'success');
+        }
+    } catch {
+        showToast('Could not refill credits right now.', 'error');
+    }
+}
+
+function initAuthListeners() {
+    if (btnSwitchView) {
+        btnSwitchView.addEventListener('click', () => {
+            showMainView(currentMainView === 'studio' ? 'landing' : 'studio');
+        });
+    }
+    if (brandHomeLink) {
+        brandHomeLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showMainView('landing');
+        });
+    }
+    if (btnOpenLogin) btnOpenLogin.addEventListener('click', () => openLoginModal());
+    if (btnCloseLogin) btnCloseLogin.addEventListener('click', closeLoginModal);
+    if (loginModal) {
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) closeLoginModal();
+        });
+    }
+    if (loginForm) loginForm.addEventListener('submit', handleLoginSubmit);
+    if (btnLogout) btnLogout.addEventListener('click', handleLogout);
+    if (btnRefillCredits) btnRefillCredits.addEventListener('click', handleRefillCredits);
+    if (btnHeroLogin) {
+        btnHeroLogin.addEventListener('click', () => {
+            if (authState.loggedIn) {
+                showMainView('studio');
+            } else {
+                openLoginModal();
+            }
+        });
+    }
+    if (btnHeroPreview) {
+        btnHeroPreview.addEventListener('click', () => showMainView('studio'));
+    }
+    if (btnPreviewBannerLogin) {
+        btnPreviewBannerLogin.addEventListener('click', () => openLoginModal());
+    }
+    if (btnJoinDiscord) {
+        btnJoinDiscord.addEventListener('click', () => {
+            showToast('Official Discord Server for Support & Credit Top-Ups is launching soon!', 'success');
+        });
+    }
 }
 
 function initSettingsUI() {
@@ -467,10 +718,20 @@ async function checkBackendHealth() {
 // ─── Drag & Drop ─────────────────────────────────────────────────────────────
 
 function initDragDrop() {
-    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('click', () => {
+        if (!authState.loggedIn) {
+            openLoginModal('Please log in to upload videos and use your credits.');
+            return;
+        }
+        fileInput.click();
+    });
     dropZone.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
+            if (!authState.loggedIn) {
+                openLoginModal('Please log in to upload videos and use your credits.');
+                return;
+            }
             fileInput.click();
         }
     });
@@ -508,6 +769,14 @@ function handleFileSelect(e) {
 }
 
 function setSelectedFile(file) {
+    if (!authState.loggedIn) {
+        openLoginModal('Please log in to your account to upload and clip videos.');
+        return;
+    }
+    if (authState.credits <= 0) {
+        showToast('You have 0 credits left! Click "+ Refill" in the navbar to top up.', 'error');
+        return;
+    }
     const validTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/webm'];
     const validExts = ['.mp4', '.mov', '.avi', '.mkv', '.webm'];
     const ext = '.' + file.name.split('.').pop().toLowerCase();
@@ -533,6 +802,14 @@ function setSelectedFile(file) {
 // ─── Upload & Process ────────────────────────────────────────────────────────
 
 async function handleGenerate() {
+    if (!authState.loggedIn) {
+        openLoginModal('Log in to generate viral clips with your credits.');
+        return;
+    }
+    if (authState.credits <= 0) {
+        showToast('Insufficient credits (0 remaining). Click "+ Refill" in the navbar.', 'error');
+        return;
+    }
     btnGenerate.disabled = true;
 
     try {
@@ -579,6 +856,9 @@ function uploadFile(file) {
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `${API_BASE}/api/upload`);
+        if (authState.token) {
+            xhr.setRequestHeader('Authorization', `Bearer ${authState.token}`);
+        }
 
         xhr.upload.addEventListener('progress', (e) => {
             if (e.lengthComputable) {
@@ -740,6 +1020,13 @@ async function fetchResults(jobId) {
         if (!res.ok) throw new Error('Failed to fetch results');
 
         const data = await res.json();
+        if (typeof data.credits_remaining === 'number') {
+            authState.credits = data.credits_remaining;
+            updateAuthUI();
+            if (data.credits_deducted > 0) {
+                showToast(`Used ${data.credits_deducted} credit${data.credits_deducted !== 1 ? 's' : ''} • ${data.credits_remaining} credits left`, 'success');
+            }
+        }
         saveToHistory(data);
         renderResults(data);
         switchState('results');

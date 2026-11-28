@@ -41,6 +41,21 @@ class ProcessingResult(BaseModel):
     video_duration: float
     processing_time: float = 0.0
     transcript_text: Optional[str] = ""
+    credits_deducted: int = 0
+    credits_remaining: int = 0
+
+
+class LoginRequest(BaseModel):
+    """Login credentials payload."""
+
+    username: str
+    password: str
+
+
+class RefillRequest(BaseModel):
+    """Credit refill payload for testing."""
+
+    amount: int = 100
 
 
 class ProcessRequest(BaseModel):
