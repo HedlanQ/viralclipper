@@ -164,6 +164,8 @@ const previewEngine = document.getElementById('preview-engine');
 // Landing Page, Auth & Credit Elements
 const landingPageView = document.getElementById('landing-page-view');
 const studioMainView = document.getElementById('studio-main-view');
+const landingNavLinks = document.getElementById('landing-nav-links');
+const studioNavTools = document.getElementById('studio-nav-tools');
 const previewModeBanner = document.getElementById('preview-mode-banner');
 const brandHomeLink = document.getElementById('brand-home-link');
 const btnSwitchView = document.getElementById('btn-switch-view');
@@ -229,6 +231,14 @@ function showMainView(view) {
             studioMainView.classList.remove('hidden');
             studioMainView.classList.add('flex');
         }
+        if (landingNavLinks) {
+            landingNavLinks.classList.remove('md:flex');
+            landingNavLinks.classList.add('hidden');
+        }
+        if (studioNavTools) {
+            studioNavTools.classList.remove('hidden');
+            studioNavTools.classList.add('flex');
+        }
         if (switchViewLabel) switchViewLabel.textContent = '← Landing Page';
     } else {
         if (studioMainView) {
@@ -236,6 +246,13 @@ function showMainView(view) {
             studioMainView.classList.remove('flex');
         }
         if (landingPageView) landingPageView.classList.remove('hidden');
+        if (landingNavLinks) {
+            landingNavLinks.classList.add('md:flex');
+        }
+        if (studioNavTools) {
+            studioNavTools.classList.add('hidden');
+            studioNavTools.classList.remove('flex');
+        }
         if (switchViewLabel) {
             switchViewLabel.textContent = authState.loggedIn ? 'Open Studio →' : 'Preview Studio';
         }

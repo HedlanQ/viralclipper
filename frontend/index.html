@@ -47,82 +47,80 @@
     <!-- Toast Notifications -->
     <div id="toast-container" class="fixed top-20 right-5 z-[70] flex flex-col gap-2.5" aria-live="polite"></div>
 
-    <!-- Full-Width Sticky Studio Navbar (flush top-0, isolated above main content) -->
-    <header class="sticky top-0 z-50 w-full studio-navbar shadow-xl shadow-black/60">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
-            <div class="flex items-center justify-between gap-3">
-                <a href="#" id="brand-home-link" class="flex items-center gap-3.5 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded-xl">
-                    <div class="w-10 h-10 rounded-xl bg-rose-600 flex items-center justify-center border border-rose-500/40">
-                        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <polygon points="23 7 16 12 23 17 23 7"></polygon>
-                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white">ViralClipper</h1>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-rose-500/15 text-rose-400 border border-rose-500/30">PRO STUDIO</span>
-                        </div>
-                        <p class="text-[11px] text-slate-400 hidden sm:block">AI Viral Clip Engine &amp; Zero-Loss Dead-Air Splicer</p>
-                    </div>
-                </a>
+    <!-- Full-Width Sticky Studio Navbar (clean 3-zone layout with breathing room) -->
+    <header class="sticky top-0 z-50 w-full studio-navbar backdrop-blur-xl bg-dark-950/85 border-b border-white/10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-6">
+            <!-- Left: Brand Logo -->
+            <a href="#" id="brand-home-link" class="flex items-center gap-3 group cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded-xl">
+                <div class="w-9 h-9 rounded-xl bg-rose-600 flex items-center justify-center border border-rose-400/40 shadow-md shadow-rose-600/20">
+                    <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                </div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white">ViralClipper</h1>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-rose-500/15 text-rose-400 border border-rose-500/30">PRO</span>
+                </div>
+            </a>
 
-                <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap justify-end">
-                    <!-- View Toggle: Landing Page <-> Studio -->
-                    <button id="btn-switch-view" type="button" class="cursor-pointer px-3.5 py-2 bg-dark-700/80 hover:bg-dark-600 border border-white/10 hover:border-rose-500/40 rounded-xl text-xs font-semibold text-slate-200 transition-colors duration-200 flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">
-                        <span id="switch-view-label">Preview Studio</span>
+            <!-- Center: Landing Page Section Links (Visible on Landing Page) -->
+            <nav id="landing-nav-links" class="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-300">
+                <a href="#section-how-it-works" class="hover:text-white transition-colors">How It Works</a>
+                <a href="#section-creator-results" class="hover:text-white transition-colors">Viral Results</a>
+                <a href="#discord-support-section" class="hover:text-white transition-colors">Credits</a>
+                <a href="#discord-support-section" class="text-indigo-300 hover:text-indigo-200 transition-colors">Discord</a>
+            </nav>
+
+            <!-- Right: Context-Aware Actions -->
+            <div class="flex items-center gap-3 shrink-0">
+                <!-- Credit Balance Pill (Visible when logged in) -->
+                <div id="credit-badge-wrapper" class="hidden items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs">
+                    <svg class="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    <span id="credit-count-text" class="font-mono font-bold text-amber-300">500</span>
+                    <button id="btn-refill-credits" type="button" title="Add +100 test credits" class="cursor-pointer ml-0.5 px-2 py-0.5 rounded-md bg-amber-500/20 hover:bg-amber-500/35 text-amber-200 font-mono text-[10px] font-bold transition-colors">
+                        +100
                     </button>
+                </div>
 
-                    <!-- Credit Balance Pill (Visible when logged in) -->
-                    <div id="credit-badge-wrapper" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs">
-                        <span class="text-amber-400 font-bold">⚡</span>
-                        <span id="credit-count-text" class="font-mono font-bold text-amber-300">500</span>
-                        <span class="text-[11px] text-amber-200/80 hidden sm:inline">Credits</span>
-                        <button id="btn-refill-credits" type="button" title="Add +100 test credits" class="cursor-pointer ml-1 px-2 py-0.5 rounded-md bg-amber-500/20 hover:bg-amber-500/35 text-amber-200 font-mono text-[10px] font-bold transition-colors">
-                            + Refill
-                        </button>
-                    </div>
+                <!-- View Toggle: Landing Page <-> Studio -->
+                <button id="btn-switch-view" type="button" class="cursor-pointer px-3.5 py-2 bg-dark-800 hover:bg-dark-700 border border-white/10 hover:border-rose-500/40 rounded-xl text-xs font-semibold text-slate-200 transition-colors duration-200">
+                    <span id="switch-view-label">Preview Studio</span>
+                </button>
 
-                    <!-- AI Engine Mode Indicator -->
-                    <div id="ai-engine-badge" class="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-dark-900/90 border border-white/10 text-xs">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span id="ai-engine-text" class="text-slate-200 font-semibold font-mono text-[11px]">Gemini 2.0 AI</span>
-                    </div>
+                <!-- Studio-Only Tools (Hidden on Landing Page so navbar stays clean) -->
+                <div id="studio-nav-tools" class="hidden items-center gap-2.5 pl-1 border-l border-white/10">
+                    <span id="ai-engine-text" class="hidden">Gemini 2.0 AI</span>
 
                     <!-- History Button -->
-                    <button id="btn-open-history" type="button" class="cursor-pointer px-3.5 py-2 bg-dark-700/80 hover:bg-dark-600 border border-white/10 hover:border-rose-500/40 rounded-xl text-xs font-semibold text-slate-200 transition-colors duration-200 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">
-                        <svg class="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <button id="btn-open-history" type="button" class="cursor-pointer px-3 py-2 bg-dark-800 hover:bg-dark-700 border border-white/10 hover:border-rose-500/40 rounded-xl text-xs font-semibold text-slate-200 transition-colors flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <circle cx="12" cy="12" r="10"></circle>
                             <polyline points="12 6 12 12 16 14"></polyline>
                         </svg>
                         <span class="hidden sm:inline">History</span>
-                        <span id="history-count-badge" class="hidden px-1.5 py-0.5 bg-rose-500/20 text-rose-300 border border-rose-500/35 rounded-md text-[10px] font-mono font-bold leading-none">0</span>
+                        <span id="history-count-badge" class="hidden px-1.5 py-0.5 bg-rose-500/20 text-rose-300 rounded text-[10px] font-mono font-bold leading-none">0</span>
                     </button>
 
                     <!-- Settings Button -->
-                    <button id="btn-open-settings" type="button" class="cursor-pointer px-3.5 py-2 bg-dark-700/80 hover:bg-dark-600 border border-white/10 hover:border-rose-500/40 rounded-xl text-xs font-semibold text-slate-200 transition-colors duration-200 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500">
-                        <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <button id="btn-open-settings" type="button" aria-label="Settings" class="cursor-pointer px-3 py-2 bg-dark-800 hover:bg-dark-700 border border-white/10 hover:border-rose-500/40 rounded-xl text-xs font-semibold text-slate-200 transition-colors flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         <span class="hidden sm:inline">Settings</span>
                     </button>
-
-                    <!-- Login Button (Shown when logged out) -->
-                    <button id="btn-open-login" type="button" class="cursor-pointer px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-rose-600/25 transition-colors duration-200 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                            <polyline points="10 17 15 12 10 7"></polyline>
-                            <line x1="15" y1="12" x2="3" y2="12"></line>
-                        </svg>
-                        <span>Login</span>
-                    </button>
-
-                    <!-- Logout Button (Shown when logged in) -->
-                    <button id="btn-logout" type="button" class="hidden cursor-pointer px-3 py-2 bg-dark-800 hover:bg-dark-700 border border-white/10 text-slate-300 hover:text-rose-300 rounded-xl text-xs font-semibold transition-colors">
-                        Logout
-                    </button>
                 </div>
+
+                <!-- Login Button (Shown when logged out) -->
+                <button id="btn-open-login" type="button" class="cursor-pointer px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-rose-600/25 transition-colors">
+                    Login
+                </button>
+
+                <!-- Logout Button (Shown when logged in) -->
+                <button id="btn-logout" type="button" class="hidden cursor-pointer px-3.5 py-2 bg-dark-800 hover:bg-dark-700 border border-white/10 text-slate-300 hover:text-rose-300 rounded-xl text-xs font-semibold transition-colors">
+                    Logout
+                </button>
             </div>
         </div>
     </header>
@@ -301,7 +299,7 @@
         </div>
 
         <!-- 3. How It Works: Visual UI Widget Showcases (Scroll-Triggered) -->
-        <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 space-y-14">
+        <section id="section-how-it-works" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 space-y-14">
             <div class="text-center max-w-2xl mx-auto space-y-3 scroll-reveal">
                 <span class="inline-block px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-[11px] font-mono uppercase tracking-widest text-rose-400 font-bold">01 • Automated Pipeline</span>
                 <h3 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">How It Works</h3>
@@ -393,7 +391,7 @@
         </section>
 
         <!-- 4. Full-Bleed Contrast Band: Recent Users & Viral Results (Scroll-Animated Bars) -->
-        <section class="section-band py-20 sm:py-28">
+        <section id="section-creator-results" class="section-band py-20 sm:py-28">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
                 <div class="text-center max-w-2xl mx-auto space-y-3 scroll-reveal">
                     <span class="inline-block px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-bold">02 • Proven Creator Results</span>
@@ -1245,6 +1243,6 @@
         </div>
     </footer>
 
-    <script src="js/app.js?v=3.1"></script>
+    <script src="js/app.js?v=3.2"></script>
 </body>
 </html>
