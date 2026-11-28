@@ -84,6 +84,104 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* ─── Landing Page Section Panels, Linings & Animations ─── */
+
+.section-panel {
+    position: relative;
+    background: linear-gradient(180deg, rgba(22, 22, 38, 0.78) 0%, rgba(13, 13, 22, 0.95) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.section-panel::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(225, 29, 72, 0.85), rgba(99, 102, 241, 0.85), transparent);
+}
+
+.section-panel-emerald::before {
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.85), rgba(99, 102, 241, 0.65), transparent);
+}
+
+.section-panel-amber::before {
+    background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.85), rgba(225, 29, 72, 0.75), transparent);
+}
+
+/* Glowing section separator line between panels */
+.section-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+.section-divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+}
+
+.section-divider-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background-color: #E11D48;
+    box-shadow: 0 0 12px rgba(225, 29, 72, 0.85);
+}
+
+/* Interactive card lift & glow animation */
+.hover-lift {
+    transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), border-color 280ms ease, box-shadow 280ms ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-6px);
+    border-color: rgba(225, 29, 72, 0.5) !important;
+    box-shadow: 0 18px 38px -10px rgba(225, 29, 72, 0.18), 0 10px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Staggered reveal animations */
+.anim-reveal {
+    opacity: 0;
+    animation: revealUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+
+@keyframes revealUp {
+    from {
+        opacity: 0;
+        transform: translateY(22px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Subtle floating animation for hero badge */
+.anim-float {
+    animation: gentleFloat 4s ease-in-out infinite;
+}
+
+@keyframes gentleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
 /* Clip card styles */
 .clip-card {
     background-color: var(--bg-surface);
